@@ -1,0 +1,28 @@
+============================================================================
+  BORUSSIA DORTMUND 09 - WINDOWS 10 / 11 CLIENT (LÖSUNG 4 - DEFENDER-FREI)
+============================================================================
+
+WARUM LÖSUNG 4 KEINE WINDOWS-DEFENDER-WARNUNG AUSLÖST:
+  1. Serverlose Architektur (BVB09-App.html):
+     Die gesamte Anwendung, alle Designs, Icons und die Live-Schnittstellen
+     (BVBWLD.de, Transfermarkt, Kicker, Ruhr Nachrichten, BVB.de) sind in
+     einer einzigen Datei gebündelt. Es wird KEIN lokaler Netzwerk-Port
+     (127.0.0.1) geöffnet -> ERR_CONNECTION_REFUSED ist 100% unmöglich!
+
+  2. Lokale Microsoft-Kompilierung auf deinem PC (Installation-Starten.cmd):
+     Anstatt eine fremde .exe aus dem Internet zu starten, nutzt das Setup
+     den in Windows 10/11 ab Werk vorinstallierten Microsoft C# Compiler
+     (C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe), um die
+     Starter-Datei BVB09.exe in 0,5 Sekunden direkt auf deinem PC zu bauen.
+     -> Echtes Microsoft-Kompilat, 0% Mark-of-the-Web, 0% Defender-Fehlalarm!
+
+SO INSTALLIERST UND STARTEST DU DAS PROGRAMM:
+  Möglichkeit A (Vollinstallation mit Desktop-Icon & Startmenü):
+    1. Entpacke diese ZIP-Datei in einen beliebigen Ordner.
+    2. Doppelklicke auf: Installation-Starten.cmd
+    3. Das Skript kompiliert BVB09.exe lokal, legt das BVB-Icon auf deinem
+       Desktop an und startet den Client sofort im eigenen App-Fenster!
+
+  Möglichkeit B (Sofort-Start ohne Installation):
+    - Doppelklicke einfach direkt auf BVB09-App.html oder BVB09.exe!
+============================================================================

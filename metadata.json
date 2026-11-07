@@ -1,0 +1,8 @@
+{
+  "name": "BVB 09 Transfermarkt Desktop Client",
+  "description": "Exklusiver Desktop-Client für CachyOS & Windows 10/11 für Borussia Dortmund 09 mit Live-Transfermarkt, BVB.de News-Echtzeit-Scraper, 3D-Logo-Splash, Benachrichtigungs-Archiv & Offline-Statistiken.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

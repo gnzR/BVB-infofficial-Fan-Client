@@ -1,0 +1,35 @@
+1 ICON "../bvb09.ico"
+1 24 "app.manifest"
+
+1 VERSIONINFO
+FILEVERSION 2,6,0,0
+PRODUCTVERSION 2,6,0,0
+FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+FILEFLAGS 0x1L
+#else
+FILEFLAGS 0x0L
+#endif
+FILEOS 0x40004L
+FILETYPE 0x1L
+FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040704b0"
+        BEGIN
+            VALUE "CompanyName", "Borussia Dortmund 09 Fan-Community"
+            VALUE "FileDescription", "BVB 09 Transfermarkt & News Client (Windows 10/11 x64)"
+            VALUE "FileVersion", "2.6.0.0"
+            VALUE "InternalName", "BVB09Client"
+            VALUE "LegalCopyright", "2026 BVB 09 Community"
+            VALUE "OriginalFilename", "BVB09.exe"
+            VALUE "ProductName", "BVB 09 Transfermarkt & News Client"
+            VALUE "ProductVersion", "2.6.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x407, 1200
+    END
+END
