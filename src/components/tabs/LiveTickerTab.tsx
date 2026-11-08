@@ -3,6 +3,7 @@ import { RefreshCw, BellRing, ExternalLink, ShieldCheck, Flame, Activity, Clock,
 import { triggerBVBNotification } from '../../utils/notificationSystem';
 import { analyzeLocalBVBQuery } from '../../utils/localBvbAnalyst';
 import { playStadiumCheerSound } from '../../utils/cheerSound';
+import { triggerGoalAlert } from '../../utils/goalAlertSystem';
 import { MatchdayCountdownWeatherWidget } from '../MatchdayCountdownWeatherWidget';
 
 interface LiveEvent {
@@ -254,6 +255,17 @@ export const LiveTickerTab: React.FC = () => {
       const latestScorer = isBvbHome
         ? newMatch.homeTeam.scorers[newMatch.homeTeam.scorers.length - 1] || 'BVB Torschütze'
         : newMatch.awayTeam.scorers[newMatch.awayTeam.scorers.length - 1] || 'BVB Torschütze';
+
+      triggerGoalAlert({
+        scorer: latestScorer,
+        minute: newMatch.currentMinute,
+        homeTeam: newMatch.homeTeam.shortName,
+        awayTeam: newMatch.awayTeam.shortName,
+        homeScore: newMatch.homeTeam.score,
+        awayScore: newMatch.awayTeam.score,
+        competition: newMatch.competition,
+        isBvbGoal: true,
+      });
 
       triggerBVBNotification({
         title: `TOR FÜR BORUSSIA DORTMUND! ⚽💛 (${newMatch.homeTeam.score}:${newMatch.awayTeam.score})`,
@@ -767,6 +779,16 @@ export const LiveTickerTab: React.FC = () => {
     if (soundEnabled) {
       playStadiumCheerSound();
     }
+    triggerGoalAlert({
+      scorer: 'Serhou Guirassy',
+      minute: "34'",
+      homeTeam: matchData.homeTeam.shortName || 'BVB',
+      awayTeam: matchData.awayTeam.shortName || 'GEG',
+      homeScore: matchData.homeTeam.score + 1,
+      awayScore: matchData.awayTeam.score,
+      competition: matchData.competition,
+      isBvbGoal: true,
+    });
     triggerBVBNotification({
       title: 'TOR FÜR BORUSSIA DORTMUND! ⚽💛',
       body: 'Serhou Guirassy (34. Min) trifft zum 1:0 vor der Gelben Wand! Südtribüne jubelt!',

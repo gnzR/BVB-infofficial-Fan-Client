@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { InfoModal } from './InfoModal';
 import { OfficialBvbLogo } from './OfficialBvbLogo';
 import { NetradioPlayer } from './NetradioPlayer';
 import { SoundboardModal } from './SoundboardModal';
 import { PlayerComparisonModal } from './tabs/PlayerComparisonModal';
+import {
+  subscribeToGoalAlerts,
+  dismissGoalAlert,
+  playBvbGoalAnthem,
+  GoalAlertPayload,
+} from '../utils/goalAlertSystem';
 import {
   downloadWindowsExeInstaller,
   downloadWindowsPortableZip,
@@ -41,6 +47,8 @@ import {
   User,
   Activity,
   Flame,
+  Calendar,
+  Volume2,
 } from 'lucide-react';
 
 interface DesktopWindowProps {
@@ -75,6 +83,13 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
   const [isMobileMoreSheetOpen, setIsMobileMoreSheetOpen] = useState<boolean>(false);
   const [isMobileRadioOpen, setIsMobileRadioOpen] = useState<boolean>(false);
+  const [activeGoalAlert, setActiveGoalAlert] = useState<GoalAlertPayload | null>(null);
+
+  useEffect(() => {
+    return subscribeToGoalAlerts((alert) => {
+      setActiveGoalAlert(alert);
+    });
+  }, []);
 
   const isNativeAndroidApp = (() => {
     if (typeof window === 'undefined') return false;
@@ -112,7 +127,54 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
 
   const isAndroidUiActive = isNativeAndroidApp || isAndroidPreviewMode;
 
-  const isSecondaryMobileTab = ['news', 'timemachine', 'chants', 'games', 'offline', 'polls', 'profile'].includes(activeTab);
+  const isSecondaryMobileTab = ['matchday', 'news', 'timemachine', 'chants', 'games', 'offline', 'polls', 'profile'].includes(activeTab);
+
+  // Global Schwarzgelbes Stadion-Tor-Banner (Idee 2)
+  const renderGlobalGoalAlertToast = () => {
+    if (!activeGoalAlert) return null;
+    return (
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-[#FDE100] via-amber-400 to-[#FDE100] text-black border-b-4 border-black px-4 py-3 shadow-[0_10px_35px_rgba(253,225,0,0.45)] animate-pulse">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-black text-[#FDE100] flex items-center justify-center font-bvb font-black text-xl shadow-md shrink-0">
+              ⚽
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2 py-0.5 rounded bg-black text-[#FDE100] font-mono text-[10px] font-black uppercase tracking-wider">
+                  TOR-ALARM · {activeGoalAlert.competition}
+                </span>
+                <span className="font-mono text-xs font-extrabold text-black/80">
+                  Spielminute {activeGoalAlert.minute}
+                </span>
+              </div>
+              <div className="text-base sm:text-lg font-black font-bvb uppercase tracking-wide leading-tight mt-0.5">
+                TOOOR FÜR BORUSSIA DORTMUND! · {activeGoalAlert.scorer} ({activeGoalAlert.homeTeam}{' '}
+                {activeGoalAlert.homeScore}:{activeGoalAlert.awayScore} {activeGoalAlert.awayTeam})
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => playBvbGoalAnthem()}
+              className="px-3 py-1.5 rounded-lg bg-black text-[#FDE100] hover:bg-slate-900 font-bvb font-extrabold text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-md"
+            >
+              <Volume2 className="w-3.5 h-3.5" />
+              <span>Torhymne 🔊</span>
+            </button>
+            <button
+              onClick={() => dismissGoalAlert()}
+              className="p-1.5 rounded-lg bg-black/20 hover:bg-black/30 text-black font-bold cursor-pointer"
+              title="Tor-Banner schließen"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // ============================================================================
   // ANDROID SMARTPHONE CLIENT UI (Native Android APK or Interactive Mobile Preview)
@@ -230,11 +292,15 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
             )}
           </header>
 
+          {/* Global Goal Alert Toast in Android View */}
+          {renderGlobalGoalAlertToast()}
+
           {/* HORIZONTAL TOUCH QUICK-PILL BAR FOR ALL FEATURES */}
           <div className="bg-[#0b0d12] border-b border-slate-800/80 px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0 text-xs">
             {[
               { id: 'ucl', label: '🏆 Pokal & CL' },
               { id: 'ticker', label: '🔴 Live-Ticker' },
+              { id: 'matchday', label: '📅 Spielplan & Stadion' },
               { id: 'bundesliga', label: '⚽ Bundesliga' },
               { id: 'squad', label: '👥 BVB-Kader' },
               { id: 'news', label: '📰 News (60T)' },
@@ -291,6 +357,21 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
+                  <button
+                    onClick={() => { setActiveTab('matchday'); setIsMobileMoreSheetOpen(false); }}
+                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 font-bold col-span-2 ${
+                      activeTab === 'matchday'
+                        ? 'bg-[#FDE100] text-black border-[#FDE100]'
+                        : 'bg-slate-900/90 text-slate-200 border-[#FDE100]/40'
+                    }`}
+                  >
+                    <Calendar className="w-4 h-4 text-[#FDE100] shrink-0" />
+                    <div>
+                      <div>📅 Spielplan, Gegner-Check & Stadion-Guide</div>
+                      <div className="text-[10px] opacity-75 font-normal">1-Klick .ics Export · Tor-Alarm · Signal Iduna Park</div>
+                    </div>
+                  </button>
+
                   <button
                     onClick={() => { setActiveTab('news'); setIsMobileMoreSheetOpen(false); }}
                     className={`p-3 rounded-xl border text-left flex items-center gap-2.5 font-bold ${
@@ -746,7 +827,7 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
           </div>
         </div>
 
-        {/* ROW 2: Dedicated Full-Width Navigation Bar (All 8 Tabs Always Visible) */}
+        {/* ROW 2: Dedicated Full-Width Navigation Bar (All Tabs Always Visible) */}
         <nav className="flex flex-wrap items-center gap-2 sm:gap-3 px-6 py-2 bg-[#0c0e13] text-sm font-semibold">
           <button
             onClick={() => setActiveTab('ticker')}
@@ -757,6 +838,22 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
             }`}
           >
             Match-Ticker
+          </button>
+
+          <button
+            onClick={() => setActiveTab('matchday')}
+            className={`px-3.5 py-1.5 rounded-lg transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'matchday'
+                ? 'bg-[#FDE100] text-black font-extrabold shadow-sm shadow-[#FDE100]/30'
+                : 'text-slate-200 hover:text-white hover:bg-slate-800/70 border border-[#FDE100]/40 bg-[#FDE100]/10'
+            }`}
+          >
+            <span>📅 Spielplan & Stadion</span>
+            <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-black ${
+              activeTab === 'matchday' ? 'bg-black text-[#FDE100]' : 'bg-[#FDE100] text-black'
+            }`}>
+              NEU
+            </span>
           </button>
 
           <button
@@ -939,6 +1036,9 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
           </div>
         </div>
       )}
+
+      {/* Global Schwarzgelbes Stadion-Tor-Banner (Idee 2) */}
+      {renderGlobalGoalAlertToast()}
 
       {/* MAIN VIEWPORT CONTENT */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">

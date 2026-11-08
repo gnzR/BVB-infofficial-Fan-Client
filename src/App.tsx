@@ -12,6 +12,7 @@ import { UserProfileTab } from './components/tabs/UserProfileTab';
 import { BvbGamesTab } from './components/tabs/BvbGamesTab';
 import { BvbTimeMachineTab } from './components/tabs/BvbTimeMachineTab';
 import { BvbChantStudioTab } from './components/tabs/BvbChantStudioTab';
+import { MatchdayHubTab } from './components/tabs/MatchdayHubTab';
 import { InstallerGeneratorModal } from './components/InstallerGeneratorModal';
 import { SchalkerEasterEggModal } from './components/SchalkerEasterEggModal';
 import { getUserProfile, UserBVBProfile } from './utils/userProfile';
@@ -110,6 +111,7 @@ export default function App() {
         onReplaySplash={handleReplaySplash}
       >
         {activeTab === 'ticker' && <LiveTickerTab />}
+        {activeTab === 'matchday' && <MatchdayHubTab />}
         {activeTab === 'bundesliga' && <BundesligaTab />}
         {(activeTab === 'ucl' || activeTab === 'transfers') && (
           <UefaPokalLiveCenterTab onJumpToSquadPlayer={handleJumpToSquadPlayer} />
