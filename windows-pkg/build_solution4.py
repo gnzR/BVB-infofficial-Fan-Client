@@ -400,7 +400,7 @@ def build_serverless_html() -> str:
         });
     }
 
-    if (url.indexOf("/api/bvb/german-ticker") !== -1) {
+    if (url.indexOf("/api/bvb/german-ticker") !== -1 || url.indexOf("/api/bvb/liveticker") !== -1) {
       return makeJsonResponse({
         success: true,
         events: [
@@ -412,9 +412,61 @@ def build_serverless_html() -> str:
       });
     }
 
+    if (url.indexOf("/api/bvb/openliga/table") !== -1) {
+      return origFetch("https://api.openligadb.de/getbltable/bl1/2026", { cache: "no-store" });
+    }
+
+    if (url.indexOf("/api/bvb/openliga/matches") !== -1) {
+      return origFetch("https://api.openligadb.de/getmatchdata/bl1/2026", { cache: "no-store" });
+    }
+
+    if (url.indexOf("/api/bvb/openliga/goalgetters") !== -1) {
+      return origFetch("https://api.openligadb.de/getgoalgetters/bl1/2026", { cache: "no-store" });
+    }
+
+    if (url.indexOf("/api/bvb/squad/live") !== -1) {
+      return makeJsonResponse({ success: false, serverlessDirectClientFetch: true });
+    }
+
+    if (url.indexOf("/api/bvb/squad/market-values") !== -1) {
+      return makeJsonResponse({ success: true, players: [] });
+    }
+
+    if (url.indexOf("/api/bvb/past-matches") !== -1) {
+      return makeJsonResponse({ success: false, matches: [] });
+    }
+
     return origFetch(input, init);
   };
 })();
+"""
+
+    import gzip
+    js_gz_b64 = base64.b64encode(gzip.compress(js_content.encode("utf-8"), compresslevel=9)).decode("ascii")
+
+    boot_loader_js = f"""
+(async function() {{
+  try {{
+    var b64 = "{js_gz_b64}";
+    var binStr = atob(b64);
+    var len = binStr.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {{
+      bytes[i] = binStr.charCodeAt(i);
+    }}
+    var ds = new DecompressionStream("gzip");
+    var writer = ds.writable.getWriter();
+    writer.write(bytes);
+    writer.close();
+    var jsCode = await new Response(ds.readable).text();
+    var scriptEl = document.createElement("script");
+    scriptEl.type = "module";
+    scriptEl.textContent = jsCode;
+    document.body.appendChild(scriptEl);
+  }} catch (err) {{
+    console.error("Bootstrap error:", err);
+  }}
+}})();
 """
 
     html_doc = f"""<!doctype html>
@@ -432,7 +484,7 @@ def build_serverless_html() -> str:
   </head>
   <body class="bg-[#0b0c0e] text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-[#FDE100] selection:text-black">
     <div id="root"></div>
-    <script type="module">{js_content_safe}</script>
+    <script>{boot_loader_js}</script>
   </body>
 </html>
 """
