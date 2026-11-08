@@ -7,12 +7,41 @@ import { PlayerComparisonModal } from './tabs/PlayerComparisonModal';
 import {
   downloadWindowsExeInstaller,
   downloadWindowsPortableZip,
-  downloadWindowsUninstaller,
   downloadCachyOSTarPackage,
   downloadCachyOSInstallerScript,
   downloadCachyOSDeinstallerScript,
+  downloadAndroidApk,
 } from '../utils/downloadHelpers';
-import { Info, Minus, Square, X, Volume2, Wifi, WifiOff, Terminal, Download, Sparkles, Bell, Shield, Laptop, Radio, Music, ArrowRightLeft, Cpu, HardDrive, Trash2 } from 'lucide-react';
+import {
+  Info,
+  Minus,
+  Square,
+  X,
+  Wifi,
+  WifiOff,
+  Terminal,
+  Download,
+  Sparkles,
+  Shield,
+  Laptop,
+  Radio,
+  Music,
+  Cpu,
+  Trash2,
+  Smartphone,
+  Menu,
+  Trophy,
+  Users,
+  Newspaper,
+  Clock,
+  Mic,
+  Gamepad2,
+  BarChart3,
+  Vote,
+  User,
+  Activity,
+  Flame,
+} from 'lucide-react';
 
 interface DesktopWindowProps {
   children: React.ReactNode;
@@ -44,12 +73,30 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
   const [isSoundboardOpen, setIsSoundboardOpen] = useState<boolean>(false);
   const [isComparisonOpen, setIsComparisonOpen] = useState<boolean>(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
+  const [isMobileMoreSheetOpen, setIsMobileMoreSheetOpen] = useState<boolean>(false);
+  const [isMobileRadioOpen, setIsMobileRadioOpen] = useState<boolean>(false);
+
+  const isNativeAndroidApp = (() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      return (
+        (window as any).__BVB_ANDROID_APP__ === true ||
+        urlParams.get('android') === 'true' ||
+        /Android/i.test(navigator.userAgent)
+      );
+    } catch {
+      return false;
+    }
+  })();
+
   const isTrueStandaloneApp = (() => {
     if (typeof window === 'undefined') return false;
     try {
       const urlParams = new URLSearchParams(window.location.search);
       return (
         (window as any).__BVB_STANDALONE_APP__ === true ||
+        isNativeAndroidApp ||
         urlParams.get('installed') === 'true' ||
         window.location.protocol === 'file:' ||
         navigator.userAgent.includes('Electron') ||
@@ -61,6 +108,384 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
   })();
 
   const [isInstalledMode, setIsInstalledMode] = useState<boolean>(() => isTrueStandaloneApp);
+  const [isAndroidPreviewMode, setIsAndroidPreviewMode] = useState<boolean>(() => isNativeAndroidApp);
+
+  const isAndroidUiActive = isNativeAndroidApp || isAndroidPreviewMode;
+
+  const isSecondaryMobileTab = ['news', 'timemachine', 'chants', 'games', 'offline', 'polls', 'profile'].includes(activeTab);
+
+  // ============================================================================
+  // ANDROID SMARTPHONE CLIENT UI (Native Android APK or Interactive Mobile Preview)
+  // ============================================================================
+  if (isAndroidUiActive) {
+    return (
+      <div className="min-h-screen bg-[#050608] text-slate-100 flex flex-col font-sans select-none">
+        {/* Web-Vorschau Top Helper Bar (Only shown when previewing Android mode inside Desktop AI Studio) */}
+        {!isTrueStandaloneApp && !isNativeAndroidApp && (
+          <div className="bg-[#11141c] border-b border-[#FDE100]/30 px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono font-bold flex items-center gap-1.5">
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Android-Smartphone Vorschau (Touch-Menüführung)</span>
+              </span>
+              <span className="text-slate-400 hidden sm:inline">
+                In der fertigen APK startet diese Oberfläche automatisch im Vollbild.
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={downloadAndroidApk}
+                className="px-3 py-1 bg-[#FDE100] hover:bg-[#ffe733] text-black font-extrabold rounded-lg flex items-center gap-1.5 shadow-md cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>BVB-09-Android-Client.apk herunterladen</span>
+              </button>
+              <button
+                onClick={() => setIsAndroidPreviewMode(false)}
+                className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg font-semibold cursor-pointer"
+              >
+                Zurück zur Desktop-Ansicht
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Smartphone Viewport Container (Full width on real Android phone, sleek 430px phone frame on desktop preview) */}
+        <div
+          className={
+            !isTrueStandaloneApp && !isNativeAndroidApp
+              ? 'w-full max-w-[440px] mx-auto my-3 flex-1 flex flex-col bg-[#08090c] border-[3px] border-slate-800 rounded-[32px] shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden relative max-h-[88vh]'
+              : 'w-full flex-1 flex flex-col bg-[#08090c] min-h-screen relative'
+          }
+        >
+          {/* Simulated Android Status Bar (Only in desktop preview frame) */}
+          {!isTrueStandaloneApp && !isNativeAndroidApp && (
+            <div className="px-5 py-1.5 bg-[#050608] text-[11px] font-mono text-slate-400 flex items-center justify-between border-b border-slate-900 shrink-0">
+              <span className="font-bold text-slate-300">19:09</span>
+              <div className="w-16 h-3 rounded-full bg-black border border-slate-800/80" />
+              <div className="flex items-center gap-1.5 text-[10px]">
+                <span className="text-emerald-400 font-bold">5G</span>
+                <span>100%</span>
+              </div>
+            </div>
+          )}
+
+          {/* COMPACT ANDROID TOP APP BAR */}
+          <header className="sticky top-0 z-30 bg-[#101218]/95 backdrop-blur-md border-b border-[#FDE100]/25 px-3.5 py-2.5 shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={() => setActiveTab('ucl')}
+                className="flex items-center gap-2 text-left"
+              >
+                <OfficialBvbLogo className="w-8 h-8 shrink-0 drop-shadow-[0_0_6px_rgba(253,225,0,0.4)]" />
+                <div>
+                  <div className="font-bvb font-black text-base leading-none text-[#FDE100] tracking-tight">
+                    BVB FAN CLIENT
+                  </div>
+                  <div className="text-[10px] font-mono text-slate-400 flex items-center gap-1 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <span>Android · Beta 1.9.0.9</span>
+                  </div>
+                </div>
+              </button>
+
+              {/* Mobile Quick Actions: Radio, Soundboard, Info */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setIsMobileRadioOpen(!isMobileRadioOpen)}
+                  className={`p-2 rounded-xl border transition-all flex items-center gap-1 text-xs font-bold ${
+                    isMobileRadioOpen
+                      ? 'bg-[#FDE100] text-black border-[#FDE100] shadow-sm shadow-[#FDE100]/30'
+                      : 'bg-slate-900 text-[#FDE100] border-[#FDE100]/30'
+                  }`}
+                  title="BVB Netradio ein-/ausklappen"
+                >
+                  <Radio className="w-4 h-4" />
+                  <span className="text-[10px] font-bvb uppercase">Radio</span>
+                </button>
+
+                <button
+                  onClick={() => setIsSoundboardOpen(true)}
+                  className="p-2 rounded-xl bg-[#FDE100] text-black font-bold border border-[#FDE100] shadow-sm flex items-center gap-1"
+                  title="Südtribünen-Soundboard"
+                >
+                  <Music className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={() => setIsInfoModalOpen(true)}
+                  className="p-2 rounded-xl bg-slate-900 text-slate-200 border border-slate-700"
+                  title="Programm-Info & Rechtliches"
+                >
+                  <Info className="w-4 h-4 text-[#FDE100]" />
+                </button>
+              </div>
+            </div>
+
+            {/* Collapsible Mobile Netradio Drawer */}
+            {isMobileRadioOpen && (
+              <div className="mt-2.5 pt-2.5 border-t border-slate-800/90 flex justify-center overflow-x-auto">
+                <NetradioPlayer />
+              </div>
+            )}
+          </header>
+
+          {/* HORIZONTAL TOUCH QUICK-PILL BAR FOR ALL FEATURES */}
+          <div className="bg-[#0b0d12] border-b border-slate-800/80 px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0 text-xs">
+            {[
+              { id: 'ucl', label: '🏆 Pokal & CL' },
+              { id: 'ticker', label: '🔴 Live-Ticker' },
+              { id: 'bundesliga', label: '⚽ Bundesliga' },
+              { id: 'squad', label: '👥 BVB-Kader' },
+              { id: 'news', label: '📰 News (60T)' },
+              { id: 'timemachine', label: '⏳ Zeitmaschine' },
+              { id: 'games', label: '🎮 Fan-Spiele' },
+              { id: 'chants', label: '🎤 Chants' },
+              { id: 'offline', label: '📊 30T-Statistik' },
+              { id: 'polls', label: '🗳️ Umfragen' },
+              { id: 'profile', label: '👤 Profil' },
+            ].map((pill) => (
+              <button
+                key={pill.id}
+                onClick={() => {
+                  setActiveTab(pill.id);
+                  setIsMobileMoreSheetOpen(false);
+                }}
+                className={`px-2.5 py-1 rounded-full whitespace-nowrap font-semibold transition-all text-[11px] ${
+                  activeTab === pill.id
+                    ? 'bg-[#FDE100] text-black font-extrabold shadow-sm'
+                    : 'bg-slate-900/90 text-slate-300 border border-slate-800'
+                }`}
+              >
+                {pill.label}
+              </button>
+            ))}
+          </div>
+
+          {/* SCROLLABLE MOBILE VIEWPORT CONTENT */}
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 pb-24 space-y-4">
+            {children}
+          </main>
+
+          {/* ANDROID BOTTOM-SHEET DRAWER ("MEHR" MENU) */}
+          {isMobileMoreSheetOpen && (
+            <div
+              className="fixed inset-0 z-40 bg-black/75 backdrop-blur-xs flex flex-col justify-end"
+              onClick={() => setIsMobileMoreSheetOpen(false)}
+            >
+              <div
+                className="w-full max-w-[440px] mx-auto bg-[#11141c] border-t-2 border-[#FDE100] rounded-t-3xl p-4 pb-20 space-y-3 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mb-1" />
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <span className="font-bvb font-black text-base text-[#FDE100] uppercase tracking-wider">
+                    📱 BVB Stadion-Menü (Alle Bereiche)
+                  </span>
+                  <button
+                    onClick={() => setIsMobileMoreSheetOpen(false)}
+                    className="p-1 rounded-lg bg-slate-800 text-slate-300"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <button
+                    onClick={() => { setActiveTab('news'); setIsMobileMoreSheetOpen(false); }}
+                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 font-bold ${
+                      activeTab === 'news'
+                        ? 'bg-[#FDE100] text-black border-[#FDE100]'
+                        : 'bg-slate-900/90 text-slate-200 border-slate-800'
+                    }`}
+                  >
+                    <Newspaper className="w-4 h-4 text-[#FDE100] shrink-0" />
+                    <div>
+                      <div>News & Archiv</div>
+                      <div className="text-[10px] opacity-75 font-normal">60-Tage Speicher</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('timemachine'); setIsMobileMoreSheetOpen(false); }}
+                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 font-bold ${
+                      activeTab === 'timemachine'
+                        ? 'bg-[#FDE100] text-black border-[#FDE100]'
+                        : 'bg-slate-900/90 text-slate-200 border-slate-800'
+                    }`}
+                  >
+                    <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                    <div>
+                      <div>Zeitmaschine</div>
+                      <div className="text-[10px] opacity-75 font-normal">8 Jahrhundert-Tore</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('games'); setIsMobileMoreSheetOpen(false); }}
+                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 font-bold ${
+                      activeTab === 'games'
+                        ? 'bg-[#FDE100] text-black border-[#FDE100]'
+                        : 'bg-slate-900/90 text-slate-200 border-slate-800'
+                    }`}
+                  >
+                    <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div>
+                      <div>Fan-Spiele</div>
+                      <div className="text-[10px] opacity-75 font-normal">Penalty King & Quiz</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('chants'); setIsMobileMoreSheetOpen(false); }}
+                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 font-bold ${
+                      activeTab === 'chants'
+                        ? 'bg-[#FDE100] text-black border-[#FDE100]'
+                        : 'bg-slate-900/90 text-slate-200 border-slate-800'
+                    }`}
+                  >
+                    <Mic className="w-4 h-4 text-[#FDE100] shrink-0" />
+                    <div>
+                      <div>Chant-Studio</div>
+                      <div className="text-[10px] opacity-75 font-normal">Fangesänge & Audio</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('offline'); setIsMobileMoreSheetOpen(false); }}
+                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 font-bold ${
+                      activeTab === 'offline'
+                        ? 'bg-[#FDE100] text-black border-[#FDE100]'
+                        : 'bg-slate-900/90 text-slate-200 border-slate-800'
+                    }`}
+                  >
+                    <BarChart3 className="w-4 h-4 text-sky-400 shrink-0" />
+                    <div>
+                      <div>30T-Statistik</div>
+                      <div className="text-[10px] opacity-75 font-normal">Formkurve & xG</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('polls'); setIsMobileMoreSheetOpen(false); }}
+                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 font-bold ${
+                      activeTab === 'polls'
+                        ? 'bg-[#FDE100] text-black border-[#FDE100]'
+                        : 'bg-slate-900/90 text-slate-200 border-slate-800'
+                    }`}
+                  >
+                    <Vote className="w-4 h-4 text-purple-400 shrink-0" />
+                    <div>
+                      <div>Umfragen</div>
+                      <div className="text-[10px] opacity-75 font-normal">Spieltags-Voting</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('profile'); setIsMobileMoreSheetOpen(false); }}
+                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 font-bold ${
+                      activeTab === 'profile'
+                        ? 'bg-[#FDE100] text-black border-[#FDE100]'
+                        : 'bg-slate-900/90 text-slate-200 border-slate-800'
+                    }`}
+                  >
+                    <User className="w-4 h-4 text-[#FDE100] shrink-0" />
+                    <div>
+                      <div>Fan-Profil</div>
+                      <div className="text-[10px] opacity-75 font-normal">Mitgliedsausweis</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => { setIsMobileMoreSheetOpen(false); onReplaySplash(); }}
+                    className="p-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-200 text-left flex items-center gap-2.5 font-bold"
+                  >
+                    <Sparkles className="w-4 h-4 text-[#FDE100] shrink-0" />
+                    <div>
+                      <div>3D-Splash</div>
+                      <div className="text-[10px] opacity-75 font-normal">Start-Intro zeigen</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* FIXED ANDROID THUMB BOTTOM NAVIGATION BAR */}
+          <nav className="sticky bottom-0 z-50 bg-[#0d0f15]/95 backdrop-blur-md border-t border-[#FDE100]/30 px-2 py-1.5 grid grid-cols-5 gap-1 shrink-0">
+            <button
+              onClick={() => { setActiveTab('ticker'); setIsMobileMoreSheetOpen(false); }}
+              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all ${
+                activeTab === 'ticker'
+                  ? 'bg-[#FDE100] text-black font-extrabold shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Activity className="w-4 h-4" />
+              <span className="text-[10px] mt-0.5 font-bold">Ticker</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('ucl'); setIsMobileMoreSheetOpen(false); }}
+              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all ${
+                activeTab === 'ucl' || activeTab === 'transfers'
+                  ? 'bg-[#FDE100] text-black font-extrabold shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Trophy className="w-4 h-4" />
+              <span className="text-[10px] mt-0.5 font-bold">Pokal/CL</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('bundesliga'); setIsMobileMoreSheetOpen(false); }}
+              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all ${
+                activeTab === 'bundesliga'
+                  ? 'bg-[#FDE100] text-black font-extrabold shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Flame className="w-4 h-4" />
+              <span className="text-[10px] mt-0.5 font-bold">Liga</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('squad'); setIsMobileMoreSheetOpen(false); }}
+              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all ${
+                activeTab === 'squad'
+                  ? 'bg-[#FDE100] text-black font-extrabold shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span className="text-[10px] mt-0.5 font-bold">Kader</span>
+            </button>
+
+            <button
+              onClick={() => setIsMobileMoreSheetOpen(!isMobileMoreSheetOpen)}
+              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all ${
+                isMobileMoreSheetOpen || isSecondaryMobileTab
+                  ? 'bg-[#FDE100] text-black font-extrabold shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Menu className="w-4 h-4" />
+              <span className="text-[10px] mt-0.5 font-bold">Mehr</span>
+            </button>
+          </nav>
+        </div>
+
+        {/* Modals */}
+        <SoundboardModal
+          isOpen={isSoundboardOpen}
+          onClose={() => setIsSoundboardOpen(false)}
+          onNavigateToChants={() => setActiveTab('chants')}
+        />
+        <PlayerComparisonModal isOpen={isComparisonOpen} onClose={() => setIsComparisonOpen(false)} />
+        <InfoModal isOpen={isInfoModalOpen} onClose={() => setIsInfoModalOpen(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#07080a] text-slate-100 flex flex-col font-sans select-none overflow-x-hidden">
@@ -112,16 +537,35 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
             <span>{isInstalledMode ? 'Ansicht: Nativ Installiert' : 'Ansicht: Download-Center'}</span>
           </button>
 
+          {/* Android Mobile Mode Toggle + Direct APK Download (Web-Vorschau only) */}
+          <button
+            onClick={() => setIsAndroidPreviewMode(true)}
+            className="px-2.5 py-0.5 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-black border border-emerald-500/40 rounded text-[11px] font-sans font-bold transition-all flex items-center gap-1 cursor-pointer"
+            title="Smartphone-Oberfläche (Android-Menüführung) live in der Vorschau testen"
+          >
+            <Smartphone className="w-3 h-3" />
+            <span>📱 Android-Ansicht</span>
+          </button>
+
           {/* DIRECT DOWNLOAD BUTTONS IN TITLEBAR (Only in Download Center mode) */}
           {!isInstalledMode ? (
             <div className="flex items-center gap-1.5">
+              <button
+                onClick={downloadAndroidApk}
+                className="px-2.5 py-0.5 bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400 rounded text-[11px] font-sans font-extrabold transition-all flex items-center gap-1 shadow-sm cursor-pointer"
+                title="Direkt fertige Android-App BVB-09-Android-Client.apk herunterladen"
+              >
+                <Smartphone className="w-3 h-3" />
+                <span>APK Download</span>
+              </button>
+
               <button
                 onClick={downloadCachyOSTarPackage}
                 className="px-2.5 py-0.5 bg-teal-500/20 hover:bg-teal-500 text-teal-300 hover:text-black border border-teal-500/40 rounded text-[11px] font-mono font-bold transition-all flex items-center gap-1"
                 title="Direkt CachyOS Paket bvb-09-cachyos-package.tar.gz herunterladen"
               >
                 <Cpu className="w-3 h-3" />
-                <span>Download bvb-09-cachyos-package.tar.gz</span>
+                <span>CachyOS .tar.gz</span>
               </button>
 
               <button
@@ -130,7 +574,7 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
                 title="Direkt BVB-09-Windows-Portable.zip (Lösung 4) herunterladen"
               >
                 <Download className="w-3 h-3" />
-                <span>Download BVB-09-Windows-Portable.zip</span>
+                <span>Windows .zip</span>
               </button>
             </div>
           ) : (
@@ -162,6 +606,13 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
                   <span className="font-bold text-[#FDE100] uppercase font-bvb">BVB Tray Daemon</span>
                   <span className="text-[10px] text-emerald-400 font-mono">Aktiv</span>
                 </div>
+                <button
+                  onClick={downloadAndroidApk}
+                  className="w-full text-left p-2 rounded bg-emerald-950/70 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 font-bold flex items-center justify-between font-sans text-[11px]"
+                >
+                  <span>📱 BVB-09-Android-Client.apk</span>
+                  <Download className="w-3.5 h-3.5" />
+                </button>
                 <button
                   onClick={downloadCachyOSTarPackage}
                   className="w-full text-left p-2 rounded bg-teal-950/60 hover:bg-teal-900 border border-teal-500/30 text-teal-300 flex items-center justify-between font-mono text-[11px]"
@@ -438,10 +889,19 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
           <div className="flex items-center gap-2 text-slate-200">
             <span className="w-2.5 h-2.5 rounded-full bg-[#FDE100] animate-pulse shrink-0" />
             <span className="font-bold text-[#FDE100] font-bvb uppercase tracking-wider">Installer & Uninstaller Downloads:</span>
-            <span className="text-slate-300">Skripte mit automatischer Abhängigkeitsprüfung für CachyOS & Windows 10/11</span>
+            <span className="text-slate-300">Direkt-Pakete für Windows 10/11, CachyOS & Android (.apk)</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={downloadAndroidApk}
+              className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-lg font-sans text-xs flex items-center gap-1.5 transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
+              title="Fertige Android-App BVB-09-Android-Client.apk (mit Smartphone-Menüführung) herunterladen"
+            >
+              <Smartphone className="w-4 h-4" />
+              BVB-09-Android-Client.apk
+            </button>
+
             <button
               onClick={downloadWindowsPortableZip}
               className="px-3.5 py-1.5 bg-[#FDE100] hover:bg-[#ffe733] text-black font-extrabold rounded-lg font-sans text-xs flex items-center gap-1.5 transition-all shadow-md shadow-[#FDE100]/20 cursor-pointer"
@@ -506,6 +966,10 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
         </div>
         {!isInstalledMode ? (
           <div className="flex items-center gap-2 text-[11px]">
+            <button onClick={downloadAndroidApk} className="text-emerald-400 font-bold hover:underline font-sans">
+              BVB-09-Android-Client.apk
+            </button>
+            <span>·</span>
             <button onClick={downloadCachyOSTarPackage} className="text-teal-400 hover:underline font-mono">
               bvb-09-cachyos-package.tar.gz
             </button>

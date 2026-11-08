@@ -1,12 +1,49 @@
-import { BVB_SQUAD_DATA, PlayerStats } from '../data/bvbSquadData';
+import { BVB_SQUAD_DATA, PlayerStats, CompetitionStatLine } from '../data/bvbSquadData';
 
-const SQUAD_STORAGE_KEY = 'bvb_squad_live_cache_v8';
-const DB_NAME = 'bvb_09_squad_db_v8';
+const SQUAD_STORAGE_KEY = 'bvb_squad_live_cache_v10';
+const DB_NAME = 'bvb_09_squad_db_v10';
 const STORE_NAME = 'squad_players';
 
-const DEPARTED_NAMES = ['Malen', 'Groß', 'Şahin', 'Sahin', 'Klopp'];
+const DEPARTED_NAMES = ['Malen', 'Groß', 'Şahin', 'Sahin', 'Klopp', 'Brandt'];
 function isCurrentSquadMember(name: string): boolean {
   return !DEPARTED_NAMES.some((dep) => name.includes(dep));
+}
+
+const COUNTRY_MAP: Record<string, { de: string; flag: string }> = {
+  Germany: { de: 'Deutschland', flag: '🇩🇪' },
+  Switzerland: { de: 'Schweiz', flag: '🇨🇭' },
+  Austria: { de: 'Österreich', flag: '🇦🇹' },
+  England: { de: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  France: { de: 'Frankreich', flag: '🇫🇷' },
+  Italy: { de: 'Italien', flag: '🇮🇹' },
+  Netherlands: { de: 'Niederlande', flag: '🇳🇱' },
+  Norway: { de: 'Norwegen', flag: '🇳🇴' },
+  Sweden: { de: 'Schweden', flag: '🇸🇪' },
+  Greece: { de: 'Griechenland', flag: '🇬🇷' },
+  Portugal: { de: 'Portugal', flag: '🇵🇹' },
+  Brazil: { de: 'Brasilien', flag: '🇧🇷' },
+  Algeria: { de: 'Algerien', flag: '🇩🇿' },
+  Guinea: { de: 'Guinea', flag: '🇬🇳' },
+  Ecuador: { de: 'Ecuador', flag: '🇪🇨' },
+  USA: { de: 'USA', flag: '🇺🇸' },
+  'United States': { de: 'USA', flag: '🇺🇸' },
+  Luxembourg: { de: 'Luxemburg', flag: '🇱🇺' },
+  Croatia: { de: 'Kroatien', flag: '🇭🇷' },
+};
+
+function mapPositionDe(espnPos: string): {
+  position: 'Torwart' | 'Abwehr' | 'Mittelfeld' | 'Angriff';
+  subPosition: string;
+} {
+  const p = (espnPos || '').toLowerCase();
+  if (p.includes('goal') || p === 'gk') return { position: 'Torwart', subPosition: 'Torwart' };
+  if (p.includes('defend') || p === 'df' || p === 'cd' || p === 'fb') {
+    return { position: 'Abwehr', subPosition: 'Abwehrspieler' };
+  }
+  if (p.includes('forward') || p.includes('striker') || p.includes('attack') || p === 'fw') {
+    return { position: 'Angriff', subPosition: 'Offensivspieler' };
+  }
+  return { position: 'Mittelfeld', subPosition: 'Mittelfeldspieler' };
 }
 
 function openSquadDB(): Promise<IDBDatabase> {
@@ -89,100 +126,297 @@ export async function saveLiveSquadData(squad: PlayerStats[]): Promise<void> {
   }
 }
 
-// Live Synchronize BVB Squad Roster from ESPN Soccer API (Players) + German Sources (Coach Validation)
+interface AggregatedEspnPlayer {
+  espnId: string;
+  name: string;
+  lastName: string;
+  jersey: number;
+  age?: number;
+  citizenship?: string;
+  positionName: string;
+  matches: number;
+  subIns: number;
+  goals: number;
+  assists: number;
+  yellowCards: number;
+  redCards: number;
+  saves: number;
+  goalsConceded: number;
+  injuries: any[];
+  breakdown: {
+    bundesliga: CompetitionStatLine;
+    ucl: CompetitionStatLine;
+    dfbPokal: CompetitionStatLine;
+  };
+}
+
+function extractAthleteStats(a: any): CompetitionStatLine & { yellowCards: number; redCards: number } {
+  const cats = a?.statistics?.splits?.categories || [];
+  const gen = cats.find((c: any) => c.name === 'general')?.stats || [];
+  const off = cats.find((c: any) => c.name === 'offensive')?.stats || [];
+  const gk = cats.find((c: any) => c.name === 'goalKeeping')?.stats || [];
+
+  const getVal = (arr: any[], statName: string) => {
+    const item = arr.find((s: any) => s.name === statName);
+    return item ? parseInt(item.displayValue || String(item.value || '0'), 10) || 0 : 0;
+  };
+
+  return {
+    matches: getVal(gen, 'appearances'),
+    subIns: getVal(gen, 'subIns'),
+    goals: getVal(off, 'totalGoals'),
+    assists: getVal(off, 'goalAssists'),
+    saves: getVal(gk, 'saves'),
+    goalsConceded: getVal(gk, 'goalsConceded'),
+    yellowCards: getVal(gen, 'yellowCards'),
+    redCards: getVal(gen, 'redCards'),
+  };
+}
+
+// Live Synchronize BVB Squad Roster across ALL 3 Competitions (Bundesliga + Champions League + DFB-Pokal)
 export async function syncLiveBvbSquad(
   onProgress?: (pct: number, step: string) => void
 ): Promise<PlayerStats[]> {
-  onProgress?.(15, '[1/4] Verbinde mit ESPN Soccer Squad API (Borussia Dortmund)...');
-  await new Promise((r) => setTimeout(r, 120));
+  onProgress?.(15, '[1/4] Verbinde mit ESPN Multi-Competition Squad API (BL + CL + DFB-Pokal)...');
+  await new Promise((r) => setTimeout(r, 80));
 
-  const updatedSquad = [...BVB_SQUAD_DATA];
-  let espnAthletes: any[] = [];
+  const aggregatedMap = new Map<string, AggregatedEspnPlayer>();
 
-  // 1. Fetch live roster stats for players from ESPN API via backend or direct
-  // Note (Lösung 1): ESPN's `coach` array is deliberately ignored because US ESPN still lists
-  // Jurgen Klopp (now DFB Bundestrainer). Coach is validated via German BVB sources below.
+  const mergeRosterList = (
+    athletes: any[],
+    compKey: 'bundesliga' | 'ucl' | 'dfbPokal'
+  ) => {
+    if (!Array.isArray(athletes)) return;
+    for (const a of athletes) {
+      const espnId = String(a.id || a.uid || a.fullName);
+      const st = extractAthleteStats(a);
+      if (!aggregatedMap.has(espnId)) {
+        aggregatedMap.set(espnId, {
+          espnId,
+          name: a.fullName || a.displayName || 'BVB Spieler',
+          lastName: a.lastName || '',
+          jersey: parseInt(String(a.jersey || '0'), 10) || 0,
+          age: typeof a.age === 'number' ? a.age : undefined,
+          citizenship: a.citizenship || '',
+          positionName: a.position?.displayName || a.position?.name || '',
+          matches: 0,
+          subIns: 0,
+          goals: 0,
+          assists: 0,
+          yellowCards: 0,
+          redCards: 0,
+          saves: 0,
+          goalsConceded: 0,
+          injuries: Array.isArray(a.injuries) ? a.injuries : [],
+          breakdown: {
+            bundesliga: { matches: 0, goals: 0, assists: 0, subIns: 0, saves: 0, goalsConceded: 0 },
+            ucl: { matches: 0, goals: 0, assists: 0, subIns: 0, saves: 0, goalsConceded: 0 },
+            dfbPokal: { matches: 0, goals: 0, assists: 0, subIns: 0, saves: 0, goalsConceded: 0 },
+          },
+        });
+      }
+      const entry = aggregatedMap.get(espnId)!;
+      if (!entry.age && typeof a.age === 'number') entry.age = a.age;
+      if (!entry.citizenship && a.citizenship) entry.citizenship = a.citizenship;
+      if (!entry.jersey && a.jersey) entry.jersey = parseInt(String(a.jersey), 10) || 0;
+      if (Array.isArray(a.injuries) && a.injuries.length > 0 && entry.injuries.length === 0) {
+        entry.injuries = a.injuries;
+      }
+
+      // Only add if this competition hasn't been recorded for this player yet
+      const prevComp = entry.breakdown[compKey];
+      if (prevComp.matches === 0 && prevComp.goals === 0 && prevComp.assists === 0) {
+        entry.breakdown[compKey] = {
+          matches: st.matches,
+          goals: st.goals,
+          assists: st.assists,
+          subIns: st.subIns,
+          saves: st.saves,
+          goalsConceded: st.goalsConceded,
+        };
+        entry.matches += st.matches;
+        entry.subIns += st.subIns || 0;
+        entry.goals += st.goals;
+        entry.assists += st.assists;
+        entry.yellowCards += st.yellowCards;
+        entry.redCards += st.redCards;
+        entry.saves += st.saves || 0;
+        entry.goalsConceded += st.goalsConceded || 0;
+      }
+    }
+  };
+
   try {
-    onProgress?.(35, '[2/4] Lade Live-Saisondaten der 28 BVB-Spieler (Spiele, Tore, Vorlagen, Verletzungen)...');
+    onProgress?.(35, '[2/4] Lade Live-Pflichtspieldaten aller 32 BVB-Spieler (BL, CL & DFB-Pokal)...');
+    // 1a. Try backend multi-competition endpoint first
+    let gotFromBackend = false;
     try {
-      const localRes = await fetch('/api/bvb/squad/live', { signal: AbortSignal.timeout(4000) });
+      const localRes = await fetch('/api/bvb/squad/live', { signal: AbortSignal.timeout(4500) });
       if (localRes.ok) {
         const localData = await localRes.json();
-        if (localData.success && Array.isArray(localData.athletes)) {
-          espnAthletes = localData.athletes;
+        if (localData.success && localData.rostersByCompetition) {
+          mergeRosterList(localData.rostersByCompetition.bundesliga || [], 'bundesliga');
+          mergeRosterList(localData.rostersByCompetition.ucl || [], 'ucl');
+          mergeRosterList(localData.rostersByCompetition.dfbPokal || [], 'dfbPokal');
+          gotFromBackend = aggregatedMap.size > 0;
         }
       }
     } catch {}
 
-    if (espnAthletes.length === 0) {
-      const res = await fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams/124/roster', { signal: AbortSignal.timeout(4500) });
-      if (res.ok) {
-        const data = await res.json();
-        espnAthletes = data.athletes || [];
+    // 1b. Direct client fetch across all 3 ESPN competitions (also works in serverless Windows/Linux/Android packages)
+    if (!gotFromBackend) {
+      const [blRes, uclRes, dfbRes] = await Promise.allSettled([
+        fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams/124/roster', { signal: AbortSignal.timeout(4500) }).then((r) => (r.ok ? r.json() : null)),
+        fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams/124/roster', { signal: AbortSignal.timeout(4500) }).then((r) => (r.ok ? r.json() : null)),
+        fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/ger.dfb_pokal/teams/124/roster', { signal: AbortSignal.timeout(4500) }).then((r) => (r.ok ? r.json() : null)),
+      ]);
+
+      if (blRes.status === 'fulfilled' && blRes.value?.athletes) {
+        mergeRosterList(blRes.value.athletes, 'bundesliga');
+      }
+      if (uclRes.status === 'fulfilled' && uclRes.value?.athletes) {
+        mergeRosterList(uclRes.value.athletes, 'ucl');
+      }
+      if (dfbRes.status === 'fulfilled' && dfbRes.value?.athletes) {
+        mergeRosterList(dfbRes.value.athletes, 'dfbPokal');
       }
     }
   } catch (err) {
-    console.warn('Direct client ESPN roster fetch error:', err);
+    console.warn('Direct client ESPN multi-roster fetch error:', err);
   }
 
-  // Fallback to UCL endpoint if needed
-  if (espnAthletes.length === 0) {
-    try {
-      const uclRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams/124/roster', { signal: AbortSignal.timeout(4500) });
-      if (uclRes.ok) {
-        const uclData = await uclRes.json();
-        espnAthletes = uclData.athletes || [];
-      }
-    } catch {}
-  }
+  let updatedSquad: PlayerStats[] = [];
 
-  // 2. Map ESPN stats strictly to players (skip Trainer position so ESPN never overwrites Niko Kovač)
-  if (espnAthletes.length > 0) {
-    for (let i = 0; i < updatedSquad.length; i++) {
-      const localP = updatedSquad[i];
-      if (localP.position === 'Trainer') continue;
+  // 2. Dynamically build full live squad from aggregated ESPN roster + enriched baseline metadata
+  if (aggregatedMap.size > 0) {
+    const livePlayers: PlayerStats[] = [];
 
-      const matchName = espnAthletes.find((a: any) => {
-        const full = (a.fullName || a.displayName || '').toLowerCase();
-        const last = (a.lastName || '').toLowerCase();
-        const pName = localP.name.toLowerCase();
-        return full.includes(pName) || pName.includes(last) || (a.jersey && String(a.jersey) === String(localP.number));
+    for (const liveP of aggregatedMap.values()) {
+      if (!isCurrentSquadMember(liveP.name)) continue;
+
+      // Match against baseline BVB_SQUAD_DATA for rich German subPosition, marketValue, transfermarktUrl
+      const baseline = BVB_SQUAD_DATA.find((b) => {
+        if (b.position === 'Trainer') return false;
+        const bName = b.name.toLowerCase();
+        const lName = liveP.name.toLowerCase();
+        const lLast = liveP.lastName.toLowerCase();
+        return (
+          (liveP.jersey > 0 && b.number === liveP.jersey) ||
+          bName.includes(lName) ||
+          lName.includes(bName.replace(' (kapitän)', '')) ||
+          (lLast.length > 3 && bName.includes(lLast))
+        );
       });
 
-      if (matchName) {
-        const statsObj = matchName.statistics?.splits?.categories || [];
-        const genStats = statsObj.find((c: any) => c.name === 'general')?.stats || [];
-        const offStats = statsObj.find((c: any) => c.name === 'offensive')?.stats || [];
+      const starts = Math.max(0, liveP.matches - liveP.subIns);
+      const isGoalkeeper =
+        baseline?.position === 'Torwart' ||
+        liveP.positionName.toLowerCase().includes('goal');
+      const minutesPlayed = isGoalkeeper
+        ? liveP.matches * 90
+        : starts * 85 + liveP.subIns * 22;
 
-        const getVal = (arr: any[], statName: string) => {
-          const item = arr.find((s: any) => s.name === statName);
-          return item ? parseInt(item.displayValue || '0', 10) : 0;
+      const countryInfo = liveP.citizenship ? COUNTRY_MAP[liveP.citizenship] : undefined;
+
+      if (baseline) {
+        const mergedPlayer: PlayerStats = {
+          ...baseline,
+          number: liveP.jersey || baseline.number,
+          age: liveP.age || baseline.age,
+          nationality: countryInfo?.de || baseline.nationality,
+          flag: countryInfo?.flag || baseline.flag,
+          // ALWAYS overwrite with live values (even if 0!)
+          matches: liveP.matches,
+          starts,
+          subIns: liveP.subIns,
+          goals: liveP.goals,
+          assists: liveP.assists,
+          yellowCards: liveP.yellowCards,
+          redCards: liveP.redCards,
+          minutesPlayed,
+          competitionBreakdown: liveP.breakdown,
+          goalkeeperStats: isGoalkeeper
+            ? { saves: liveP.saves, goalsConceded: liveP.goalsConceded }
+            : undefined,
         };
 
-        const appearances = getVal(genStats, 'appearances');
-        const yellowCards = getVal(genStats, 'yellowCards');
-        const redCards = getVal(genStats, 'redCards');
-        const goals = getVal(offStats, 'totalGoals');
-        const assists = getVal(offStats, 'goalAssists');
-
-        if (appearances > 0) localP.matches = appearances;
-        if (goals > 0 || localP.position === 'Angriff' || localP.position === 'Mittelfeld') localP.goals = goals;
-        if (assists > 0) localP.assists = assists;
-        if (yellowCards > 0) localP.yellowCards = yellowCards;
-        if (redCards > 0) localP.redCards = redCards;
-        if (appearances > 0) localP.minutesPlayed = appearances * 78;
-
-        // Check injuries from ESPN
-        if (Array.isArray(matchName.injuries) && matchName.injuries.length > 0) {
-          const inj = matchName.injuries[0];
-          localP.injuryStatus = {
+        if (liveP.injuries.length > 0) {
+          const inj = liveP.injuries[0];
+          mergedPlayer.injuryStatus = {
             isInjured: true,
             condition: inj.status || inj.comment || 'Ausfall / Verletzung',
             expectedReturn: 'In Behandlung',
           };
         }
+
+        livePlayers.push(mergedPlayer);
+      } else {
+        // Brand-new player discovered in the live ESPN roster!
+        const posInfo = mapPositionDe(liveP.positionName);
+        const newPlayer: PlayerStats = {
+          id: `p-${liveP.jersey || liveP.espnId}`,
+          name: liveP.name,
+          number: liveP.jersey,
+          position: posInfo.position,
+          subPosition: posInfo.subPosition,
+          age: liveP.age || 19,
+          nationality: countryInfo?.de || liveP.citizenship || 'Deutschland',
+          flag: countryInfo?.flag || '🇩🇪',
+          marketValue: 0.5,
+          marketValueFormatted: '€500k',
+          contractUntil: '30.06.2028',
+          photo: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=400&q=80',
+          matches: liveP.matches,
+          starts,
+          subIns: liveP.subIns,
+          goals: liveP.goals,
+          assists: liveP.assists,
+          yellowCards: liveP.yellowCards,
+          redCards: liveP.redCards,
+          minutesPlayed,
+          competitionBreakdown: liveP.breakdown,
+          goalkeeperStats: isGoalkeeper
+            ? { saves: liveP.saves, goalsConceded: liveP.goalsConceded }
+            : undefined,
+          injuryStatus:
+            liveP.injuries.length > 0
+              ? {
+                  isInjured: true,
+                  condition: liveP.injuries[0]?.status || 'Ausfall',
+                  expectedReturn: 'In Behandlung',
+                }
+              : { isInjured: false },
+          valueHistory: [{ date: '2026', value: 0.5 }],
+          transfermarktUrl: `https://www.transfermarkt.de/schnellsuche/ergebnis/schnellsuche?query=${encodeURIComponent(liveP.name)}`,
+          marketValueTrend: 'up',
+        };
+        livePlayers.push(newPlayer);
       }
     }
+
+    // Sort by position group (Torwart -> Abwehr -> Mittelfeld -> Angriff) and then marketValue descending
+    const posOrder: Record<string, number> = {
+      Torwart: 1,
+      Abwehr: 2,
+      Mittelfeld: 3,
+      Angriff: 4,
+      Trainer: 5,
+    };
+    livePlayers.sort((a, b) => {
+      const diff = (posOrder[a.position] || 9) - (posOrder[b.position] || 9);
+      if (diff !== 0) return diff;
+      return (b.marketValue || 0) - (a.marketValue || 0);
+    });
+
+    // Add Head Coach Niko Kovač
+    const coachBaseline = BVB_SQUAD_DATA.find((p) => p.position === 'Trainer');
+    if (coachBaseline) {
+      livePlayers.push({ ...coachBaseline });
+    }
+
+    updatedSquad = livePlayers;
+  } else {
+    updatedSquad = [...BVB_SQUAD_DATA];
   }
 
   // 2b. Validate & enrich Head Coach (Niko Kovač) via live German BVB sources (BVBWLD.de / Transfermarkt)
@@ -220,7 +454,6 @@ export async function syncLiveBvbSquad(
 
   onProgress?.(70, '[3/4] Synchronisierung aller BVB-Marktwerte & Transfermarkt-Updates...');
   try {
-    // 3a. Synchronisiere alle 28 Spieler über den dedizierten Transfermarkt-Endpunkt
     try {
       const tmSquadRes = await fetch('/api/bvb/squad/market-values');
       if (tmSquadRes.ok) {
@@ -232,7 +465,10 @@ export async function syncLiveBvbSquad(
               (tm: any) =>
                 tm.id === p.id ||
                 tm.number === p.number ||
-                (tm.name && p.name && (tm.name.toLowerCase().includes(p.name.toLowerCase()) || p.name.toLowerCase().includes(tm.name.toLowerCase())))
+                (tm.name &&
+                  p.name &&
+                  (tm.name.toLowerCase().includes(p.name.toLowerCase()) ||
+                    p.name.toLowerCase().includes(tm.name.toLowerCase())))
             );
             if (matchTM) {
               if (matchTM.marketValueRaw !== undefined && matchTM.marketValueRaw > 0) {
@@ -261,7 +497,6 @@ export async function syncLiveBvbSquad(
       console.warn('Full squad TM market values endpoint fallback:', e);
     }
 
-    // 3b. Ergänze aktuelle Transfergerüchte & Wahrscheinlichkeiten
     const tmRes = await fetch('/api/bvb/transfers');
     if (tmRes.ok) {
       const tmData = await tmRes.json();
@@ -299,12 +534,15 @@ export async function syncLiveBvbSquad(
   } catch (err) {
     console.warn('Transfermarkt squad sync error:', err);
   }
-  await new Promise((r) => setTimeout(r, 120));
+  await new Promise((r) => setTimeout(r, 80));
 
   onProgress?.(95, '[4/4] Speichere aktualisierten BVB-Kader in lokaler Datenbank...');
   await saveLiveSquadData(updatedSquad);
 
-  onProgress?.(100, '[✓] BVB Live-Kader (28 Spieler + Cheftrainer Niko Kovač) ERFOLGREICH synchronisiert!');
+  const playerCount = updatedSquad.filter((p) => p.position !== 'Trainer').length;
+  onProgress?.(
+    100,
+    `[✓] BVB Live-Kader (${playerCount} Spieler + Cheftrainer Niko Kovač) ERFOLGREICH synchronisiert!`
+  );
   return updatedSquad;
 }
-

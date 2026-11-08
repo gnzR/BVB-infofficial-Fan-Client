@@ -538,6 +538,16 @@ export function downloadWindowsUninstaller() {
   document.body.removeChild(a);
 }
 
+export function downloadAndroidApk() {
+  const serverEndpoint = '/api/download/BVB-09-Android-Client.apk';
+  const a = document.createElement('a');
+  a.href = serverEndpoint;
+  a.download = 'BVB-09-Android-Client.apk';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
 export const CACHYOS_INSTALLER_SCRIPT = `#!/usr/bin/env bash
 # In der komprimierten Datei bvb-09-cachyos-package.tar.gz enthalten:
 # - installer.sh (mit BVB 09 ASCII Logo, pacman Dependency-Resolver)

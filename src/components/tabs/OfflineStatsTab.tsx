@@ -59,13 +59,13 @@ export const OfflineStatsTab: React.FC = () => {
 
     setIsSearching(true);
     setTimeout(() => {
-      const result = getPlayer30DayStats(query);
+      const result = getPlayer30DayStats(query, stats?.recentMatches);
       if (result) {
         setSelectedPlayerStats(result);
         setSearchQuery(result.name);
       }
       setIsSearching(false);
-    }, 150);
+    }, 120);
   };
 
   const handleQuickSelect = (playerName: string) => {
@@ -83,7 +83,7 @@ export const OfflineStatsTab: React.FC = () => {
         `Heute, ${now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`
       );
       if (selectedPlayerStats) {
-        const refreshed = getPlayer30DayStats(selectedPlayerStats.name);
+        const refreshed = getPlayer30DayStats(selectedPlayerStats.name, updated?.recentMatches);
         if (refreshed) setSelectedPlayerStats(refreshed);
       }
     } catch (e) {
@@ -95,15 +95,14 @@ export const OfflineStatsTab: React.FC = () => {
 
   if (!stats) return null;
 
-
   const filteredSuggestions = searchQuery.trim()
-    ? allPlayers.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5)
+    ? allPlayers.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 6)
     : [];
 
   const quickStarPlayers = [
     'Serhou Guirassy',
+    'Felix Nmecha',
     'Fábio Silva',
-    'Julian Brandt',
     'Konstantinos Karetsas',
     'Nico Schlotterbeck',
     'Jobe Bellingham',
@@ -113,8 +112,8 @@ export const OfflineStatsTab: React.FC = () => {
     'Daniel Svensson',
     'Gregor Kobel',
     'Waldemar Anton',
+    'Julian Ryerson',
     'Marcel Sabitzer',
-    'Emre Can',
   ];
 
   return (
@@ -249,7 +248,7 @@ export const OfflineStatsTab: React.FC = () => {
             {stats.wins}S · {stats.draws}U · {stats.losses}N
           </div>
           <div className="text-xs text-slate-300 font-mono">
-            Tordifferenz: +8 ({stats.goalsScored} : {stats.goalsConceded})
+            Tordifferenz: {stats.goalsScored - stats.goalsConceded >= 0 ? `+${stats.goalsScored - stats.goalsConceded}` : stats.goalsScored - stats.goalsConceded} ({stats.goalsScored} : {stats.goalsConceded} in {stats.matchesPlayed} Sp.)
           </div>
         </div>
 

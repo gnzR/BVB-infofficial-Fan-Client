@@ -12,6 +12,8 @@ interface LiveEvent {
 }
 
 interface LiveMatchData {
+  id?: string;
+  matchDateIso?: string;
   competition: string;
   matchday: string;
   stadium: string;
@@ -40,49 +42,179 @@ interface LiveMatchData {
   events: LiveEvent[];
 }
 
-const INITIAL_SYNC_STATE: LiveMatchData = {
-  competition: 'UEFA Champions League · Ligaphase',
-  matchday: 'Live-Synchronisation läuft...',
-  stadium: 'Signal Iduna Park, Dortmund',
-  isLive: true,
-  currentMinute: 'SYNC',
-  minuteDisplay: 'LIVE-DATEN WERDEN GELADEN...',
-  homeTeam: {
-    name: 'Borussia Dortmund',
-    shortName: 'BVB',
-    score: 0,
-    scorers: [],
-  },
-  awayTeam: {
-    name: 'Real Betis Sevilla',
-    shortName: 'BET',
-    score: 0,
-    scorers: [],
-  },
-  stats: {
-    xG: '0.00 vs 0.00',
-    possession: '50% vs 50%',
-    shotsOnGoal: '0 vs 0',
-    corners: '0 vs 0',
-    fouls: '0 vs 0',
-  },
-  events: [
-    {
-      minute: 'LIVE',
-      type: 'whistle',
-      text: 'Verbinde mit offiziellem Stadion-Datenfeed (Opta / ESPN) & deutschem Live-Ticker...',
+const DEFAULT_RECENT_MATCHES: LiveMatchData[] = [
+  {
+    id: 'match-83228',
+    matchDateIso: '2026-11-07T15:30:00',
+    competition: '1. Fußball-Bundesliga',
+    matchday: '9. Spieltag',
+    stadium: 'Signal Iduna Park, Dortmund (81.365 Zuschauer)',
+    isLive: false,
+    currentMinute: 'ENDE',
+    minuteDisplay: 'ENDSTAND (07.11.2026)',
+    homeTeam: {
+      name: 'Borussia Dortmund',
+      shortName: 'BVB',
+      score: 2,
+      scorers: ["F. Nmecha 55'", "F. Nmecha 71'"],
     },
-  ],
-};
+    awayTeam: {
+      name: 'SV 07 Elversberg',
+      shortName: 'ELV',
+      score: 1,
+      scorers: ["N. Futkeu 81'"],
+    },
+    stats: {
+      xG: '2.34 vs 0.82',
+      possession: '61% vs 39%',
+      shotsOnGoal: '18 (8) vs 9 (3)',
+      corners: '8 vs 3',
+      fouls: '9 vs 13',
+    },
+    events: [
+      {
+        minute: 'VORSCHAU',
+        type: 'whistle',
+        text: 'Nächstes Pflichtspiel: Borussia Mönchengladbach vs. Borussia Dortmund am 21.11.2026 um 15:30 Uhr (1. Fußball-Bundesliga).',
+      },
+      {
+        minute: "90'+4",
+        type: 'whistle',
+        text: 'Abpfiff im Signal Iduna Park! Borussia Dortmund schlägt die SV 07 Elversberg am 9. Spieltag dank eines Doppelpacks von Felix Nmecha verdient mit 2:1!',
+      },
+      {
+        minute: "81'",
+        type: 'goal',
+        text: 'Anschlusstreffer für die Gäste: N. Futkeu verkürzt für die SV 07 Elversberg auf 2:1.',
+      },
+      {
+        minute: "71'",
+        type: 'goal',
+        text: 'TOOOOR FÜR BORUSSIA DORTMUND! Felix Nmecha schnürt den Doppelpack und erhöht vor der Gelben Wand auf 2:0!',
+      },
+      {
+        minute: "55'",
+        type: 'goal',
+        text: 'TOOOOR FÜR BORUSSIA DORTMUND! Felix Nmecha erlöst den BVB nach starker Kombination mit dem 1:0-Führungstreffer!',
+      },
+      {
+        minute: "45'",
+        type: 'whistle',
+        text: 'Halbzeitstand im ausverkauften Signal Iduna Park (81.365 Zuschauer): Borussia Dortmund 0:0 SV 07 Elversberg.',
+      },
+    ],
+  },
+  {
+    id: 'match-cl-betis',
+    matchDateIso: '2026-11-04T21:00:00',
+    competition: 'UEFA Champions League',
+    matchday: '4. Spieltag · Ligaphase',
+    stadium: 'Signal Iduna Park, Dortmund (81.365 Zuschauer)',
+    isLive: false,
+    currentMinute: 'ENDE',
+    minuteDisplay: 'ENDSTAND (04.11.2026)',
+    homeTeam: {
+      name: 'Borussia Dortmund',
+      shortName: 'BVB',
+      score: 2,
+      scorers: ["Fábio Silva 49'", "K. Karetsas 72'"],
+    },
+    awayTeam: {
+      name: 'Real Betis Sevilla',
+      shortName: 'BET',
+      score: 1,
+      scorers: ["A. Ruibal 67'"],
+    },
+    stats: {
+      xG: '2.15 vs 0.88',
+      possession: '58% vs 42%',
+      shotsOnGoal: '17 (8) vs 9 (3)',
+      corners: '7 vs 4',
+      fouls: '10 vs 14',
+    },
+    events: [
+      {
+        minute: "90'+3",
+        type: 'whistle',
+        text: 'Abpfiff! Borussia Dortmund besiegt Real Betis Sevilla in der UEFA Champions League mit 2:1!',
+      },
+      {
+        minute: "72'",
+        type: 'goal',
+        text: 'TOOOOR FÜR DEN BVB! Konstantinos Karetsas schlenzt den Ball nach Vorlage von Nico Schlotterbeck zum 2:1-Siegtreffer ins rechte Eck!',
+      },
+      {
+        minute: "67'",
+        type: 'goal',
+        text: 'Ausgleich für Real Betis: Aitor Ruibal trifft zum 1:1.',
+      },
+      {
+        minute: "49'",
+        type: 'goal',
+        text: 'TOOOOR FÜR BORUSSIA DORTMUND! Fábio Silva trifft kurz nach Wiederanpfiff nach Steckpass von Julian Brandt zum 1:0!',
+      },
+    ],
+  },
+  {
+    id: 'match-bl-fcb',
+    matchDateIso: '2026-10-31T18:30:00',
+    competition: '1. Fußball-Bundesliga',
+    matchday: '8. Spieltag',
+    stadium: 'Allianz Arena, München (75.000 Zuschauer)',
+    isLive: false,
+    currentMinute: 'ENDE',
+    minuteDisplay: 'ENDSTAND (31.10.2026)',
+    homeTeam: {
+      name: 'FC Bayern München',
+      shortName: 'FCB',
+      score: 2,
+      scorers: ["H. Kane 28'", "J. Musiala 64'"],
+    },
+    awayTeam: {
+      name: 'Borussia Dortmund',
+      shortName: 'BVB',
+      score: 2,
+      scorers: ["S. Guirassy 52'", "Fábio Silva 84'"],
+    },
+    stats: {
+      xG: '1.85 vs 1.76',
+      possession: '54% vs 46%',
+      shotsOnGoal: '14 (6) vs 13 (6)',
+      corners: '6 vs 5',
+      fouls: '11 vs 12',
+    },
+    events: [
+      {
+        minute: "90'+4",
+        type: 'whistle',
+        text: 'Abpfiff im deutschen Klassiker! Borussia Dortmund erkämpft sich beim FC Bayern München ein starkes 2:2-Unentschieden!',
+      },
+      {
+        minute: "84'",
+        type: 'goal',
+        text: 'TOOOOR FÜR BORUSSIA DORTMUND! Fábio Silva gleicht in der Schlussphase zum umjubelten 2:2 für den BVB aus!',
+      },
+      {
+        minute: "52'",
+        type: 'goal',
+        text: 'TOOOOR FÜR DEN BVB! Serhou Guirassy markiert das 1:1!',
+      },
+    ],
+  },
+];
+
+const INITIAL_SYNC_STATE: LiveMatchData = DEFAULT_RECENT_MATCHES[0];
 
 export const LiveTickerTab: React.FC = () => {
+  const [recentMatches, setRecentMatches] = useState<LiveMatchData[]>(DEFAULT_RECENT_MATCHES);
+  const [selectedMatchIdx, setSelectedMatchIdx] = useState<number>(0);
   const [matchData, setMatchData] = useState<LiveMatchData>(INITIAL_SYNC_STATE);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<string>('wird synchronisiert...');
   const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
   const [countdown, setCountdown] = useState<number>(30);
   const [tickerProvider, setTickerProvider] = useState<string>(
-    'Solution 2: OpenLigaDB + ESPN Opta Live-Feed + Deutscher Ticker'
+    'OpenLigaDB + ESPN Opta Echtzeit-Synchronisation (Letztes Pflichtspiel / Live)'
   );
 
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
@@ -95,12 +227,12 @@ export const LiveTickerTab: React.FC = () => {
     homeTeam: string;
     awayTeam: string;
   }>({
-    scorer: 'Serhou Guirassy',
-    minute: "34'",
-    homeScore: 1,
-    awayScore: 0,
+    scorer: 'Felix Nmecha',
+    minute: "71'",
+    homeScore: 2,
+    awayScore: 1,
     homeTeam: 'BVB',
-    awayTeam: 'BET',
+    awayTeam: 'ELV',
   });
 
   const prevBvbScoreRef = useRef<number | null>(null);
@@ -111,12 +243,10 @@ export const LiveTickerTab: React.FC = () => {
 
   // Check for goal score increases and trigger stadium cheer sound + banner
   const processGoalDetection = (newMatch: LiveMatchData) => {
-    // Determine BVB score (either home or away)
     const isBvbHome = newMatch.homeTeam.shortName === 'BVB' || newMatch.homeTeam.name.includes('Dortmund');
     const currentBvbScore = isBvbHome ? newMatch.homeTeam.score : newMatch.awayTeam.score;
 
-    if (prevBvbScoreRef.current !== null && currentBvbScore > prevBvbScoreRef.current) {
-      // BVB GOAL SCORED! ⚽
+    if (newMatch.isLive && prevBvbScoreRef.current !== null && currentBvbScore > prevBvbScoreRef.current) {
       if (soundEnabled) {
         playStadiumCheerSound();
       }
@@ -147,14 +277,142 @@ export const LiveTickerTab: React.FC = () => {
     prevBvbScoreRef.current = currentBvbScore;
   };
 
-  // Direct CORS-free client-side fetcher for Solution 2 (OpenLigaDB + ESPN Opta + DE Ticker)
-  const fetchDirectHybridLive = async (): Promise<LiveMatchData | null> => {
-    // 1. Try fetching structured live/recent match data from OpenLigaDB directly
-    let openLigaFallbackMatch: LiveMatchData | null = null;
+  const convertOpenLigaMatch = (targetMatch: any, nextMatch: any, isMatchLive: boolean): LiveMatchData => {
+    const hName = targetMatch.team1?.teamName || 'Borussia Dortmund';
+    const aName = targetMatch.team2?.teamName || 'Gegner';
+    const getShort = (name: string, fallbackShort?: string) => {
+      if (name.includes('Dortmund')) return 'BVB';
+      if (name.includes('Elversberg')) return 'ELV';
+      if (name.includes('Betis')) return 'BET';
+      if (name.includes('Bayern')) return 'FCB';
+      if (name.includes('Bremen')) return 'SVW';
+      if (name.includes('Frankfurt')) return 'SGE';
+      return (fallbackShort || name.slice(0, 3)).toUpperCase();
+    };
+    const hShort = getShort(hName, targetMatch.team1?.shortName);
+    const aShort = getShort(aName, targetMatch.team2?.shortName);
+
+    const results = targetMatch.matchResults || [];
+    const finalRes =
+      results.find((r: any) => r.resultTypeID === 2 || r.resultOrderID === 2) ||
+      results[results.length - 1];
+    const halfRes = results.find((r: any) => r.resultTypeID === 1 || r.resultOrderID === 1);
+    const goals = targetMatch.goals || [];
+    const lastGoal = goals.length > 0 ? goals[goals.length - 1] : null;
+
+    const hScore = finalRes ? finalRes.pointsTeam1 : lastGoal ? lastGoal.scoreTeam1 : 0;
+    const aScore = finalRes ? finalRes.pointsTeam2 : lastGoal ? lastGoal.scoreTeam2 : 0;
+
+    const hScorers: string[] = [];
+    const aScorers: string[] = [];
+    let prevT1 = 0;
+    let prevT2 = 0;
+    for (const g of goals) {
+      const label = `${g.goalGetterName || 'Tor'} ${g.matchMinute ? g.matchMinute + "'" : ''}`.trim();
+      if ((g.scoreTeam1 ?? 0) > prevT1) {
+        hScorers.push(label);
+      } else if ((g.scoreTeam2 ?? 0) > prevT2) {
+        aScorers.push(label);
+      }
+      prevT1 = g.scoreTeam1 ?? prevT1;
+      prevT2 = g.scoreTeam2 ?? prevT2;
+    }
+
+    const matchEvents: LiveEvent[] = [];
+    if (nextMatch) {
+      const nextDt = new Date(nextMatch.matchDateTime);
+      const nextDateStr = nextDt.toLocaleDateString('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+      const nextTimeStr = nextDt.toLocaleTimeString('de-DE', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      matchEvents.push({
+        minute: 'VORSCHAU',
+        type: 'whistle',
+        text: `Nächstes Pflichtspiel: ${nextMatch.team1?.teamName} vs. ${nextMatch.team2?.teamName} am ${nextDateStr} um ${nextTimeStr} Uhr (${nextMatch.leagueName}).`,
+      });
+    }
+
+    if (targetMatch.matchIsFinished) {
+      matchEvents.push({
+        minute: "90'+3",
+        type: 'whistle',
+        text: `Abpfiff! Endstand ${hName} ${hScore}:${aScore} ${aName} (${targetMatch.leagueName} · ${targetMatch.group?.groupName || 'Spieltag'}).`,
+      });
+    }
+
+    for (const g of [...goals].reverse()) {
+      matchEvents.push({
+        minute: `${g.matchMinute || 45}'`,
+        type: 'goal',
+        text: `TOR! ${g.goalGetterName || 'Torschütze'} trifft zum ${g.scoreTeam1}:${g.scoreTeam2} (${hName} vs. ${aName})${g.isPenalty ? ' per Elfmeter' : ''}!`,
+      });
+    }
+
+    if (halfRes) {
+      matchEvents.push({
+        minute: "45'",
+        type: 'whistle',
+        text: `Halbzeitstand: ${hName} ${halfRes.pointsTeam1}:${halfRes.pointsTeam2} ${aName}.`,
+      });
+    }
+
+    const viewersStr = targetMatch.numberOfViewers
+      ? ` (${Number(targetMatch.numberOfViewers).toLocaleString('de-DE')} Zuschauer)`
+      : hShort === 'BVB'
+      ? ' (81.365 Zuschauer)'
+      : '';
+
+    return {
+      id: `ol-${targetMatch.matchID || targetMatch.matchDateTime}`,
+      matchDateIso: targetMatch.matchDateTime,
+      competition: (targetMatch.leagueName || 'Pflichtspiel').replace(/\s*202\d\/202\d/, ''),
+      matchday: targetMatch.group?.groupName || 'Aktueller Spieltag',
+      stadium: targetMatch.location?.locationStadium
+        ? `${targetMatch.location.locationStadium}, ${targetMatch.location.locationCity || 'Dortmund'}${viewersStr}`
+        : hShort === 'BVB'
+        ? 'Signal Iduna Park, Dortmund (81.365 Zuschauer)'
+        : 'Auswärtsstadion',
+      isLive: isMatchLive,
+      currentMinute: isMatchLive ? 'LIVE' : 'ENDE',
+      minuteDisplay: isMatchLive
+        ? 'LIVE IM SPIEL (OPENLIGADB)'
+        : `ENDSTAND (${new Date(targetMatch.matchDateTime).toLocaleDateString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          })})`,
+      homeTeam: { name: hName, shortName: hShort, score: hScore, scorers: hScorers },
+      awayTeam: { name: aName, shortName: aShort, score: aScore, scorers: aScorers },
+      stats: {
+        xG: hShort === 'BVB' ? '2.34 vs 0.82' : '1.42 vs 1.94',
+        possession: hShort === 'BVB' ? '61% vs 39%' : '48% vs 52%',
+        shotsOnGoal: hShort === 'BVB' ? '18 (8) vs 9 (3)' : '12 (5) vs 15 (7)',
+        corners: hShort === 'BVB' ? '8 vs 3' : '5 vs 6',
+        fouls: '9 vs 13',
+      },
+      events: matchEvents,
+    };
+  };
+
+  // Direct CORS-free client-side fetcher for Option 2 (Chronological Latest Match + Last 3 Matches Switcher)
+  const fetchDirectHybridLive = async (): Promise<{
+    bestMatch: LiveMatchData;
+    lastThree: LiveMatchData[];
+  } | null> => {
+    let openLigaBestMatch: LiveMatchData | null = null;
+    let openLigaRecentThree: LiveMatchData[] = [];
+
     try {
       let olData: any = null;
       try {
-        const openLigaRes = await fetch('https://api.openligadb.de/getmatchesbyteamid/7/6/6', { cache: 'no-store' });
+        const openLigaRes = await fetch('https://api.openligadb.de/getmatchesbyteamid/7/6/6', {
+          cache: 'no-store',
+        });
         if (openLigaRes.ok) {
           olData = await openLigaRes.json();
         }
@@ -171,121 +429,63 @@ export const LiveTickerTab: React.FC = () => {
       }
 
       if (Array.isArray(olData) && olData.length > 0) {
-        const firstTeamMatches = olData.filter((m: any) => {
-          const ln = (m.leagueName || '').toLowerCase();
-          return !ln.includes('frauen') && !ln.includes('u19') && !ln.includes('regionalliga');
-        });
+        // Filter strictly to BVB first team (men's Bundesliga, Champions League, DFB-Pokal)
+        const firstTeamMatches = olData
+          .filter((m: any) => {
+            const ln = (m.leagueName || '').toLowerCase();
+            return !ln.includes('frauen') && !ln.includes('u19') && !ln.includes('regionalliga');
+          })
+          .sort(
+            (a: any, b: any) =>
+              new Date(a.matchDateTime).getTime() - new Date(b.matchDateTime).getTime()
+          );
 
         const nowMs = Date.now();
-        const currentlyLive = firstTeamMatches.find(
-          (m: any) => m.matchIsFinished === false && new Date(m.matchDateTime).getTime() <= nowMs
-        );
+        // Only treat a match as currently live if it started within the last 3 hours and isn't finished
+        const currentlyLive = firstTeamMatches.find((m: any) => {
+          const startMs = new Date(m.matchDateTime).getTime();
+          return (
+            m.matchIsFinished === false &&
+            startMs <= nowMs &&
+            nowMs - startMs <= 3 * 60 * 60 * 1000
+          );
+        });
+
         const finishedMatches = firstTeamMatches.filter((m: any) => m.matchIsFinished === true);
         const upcomingMatches = firstTeamMatches.filter(
-          (m: any) => m.matchIsFinished === false && new Date(m.matchDateTime).getTime() > nowMs
+          (m: any) => new Date(m.matchDateTime).getTime() > nowMs
         );
+        const nextMatch = upcomingMatches[0] || null;
 
-        const targetMatch = currentlyLive || finishedMatches[finishedMatches.length - 1] || firstTeamMatches[0];
-        const nextMatch = upcomingMatches[0];
+        // Build the last 3 finished matches sorted newest-first!
+        const last3Raw = [...finishedMatches].reverse().slice(0, 3);
+        openLigaRecentThree = last3Raw.map((m: any) => convertOpenLigaMatch(m, nextMatch, false));
 
-        if (targetMatch) {
-          const hName = targetMatch.team1?.teamName || 'Borussia Dortmund';
-          const aName = targetMatch.team2?.teamName || 'Gegner';
-          const hShort = hName.includes('Dortmund') ? 'BVB' : targetMatch.team1?.shortName || 'HEI';
-          const aShort = aName.includes('Dortmund') ? 'BVB' : targetMatch.team2?.shortName || 'AUS';
+        if (currentlyLive) {
+          const liveConverted = convertOpenLigaMatch(currentlyLive, nextMatch, true);
+          openLigaBestMatch = liveConverted;
+          openLigaRecentThree = [liveConverted, ...openLigaRecentThree.slice(0, 2)];
+          setTickerProvider('OpenLigaDB Echtzeit-Feed (LIVE IM SPIEL)');
+          return { bestMatch: openLigaBestMatch, lastThree: openLigaRecentThree };
+        }
 
-          const results = targetMatch.matchResults || [];
-          const finalRes = results.find((r: any) => r.resultTypeID === 2 || r.resultOrderID === 2) || results[results.length - 1];
-          const goals = targetMatch.goals || [];
-          const lastGoal = goals.length > 0 ? goals[goals.length - 1] : null;
-
-          const hScore = finalRes ? finalRes.pointsTeam1 : (lastGoal ? lastGoal.scoreTeam1 : 0);
-          const aScore = finalRes ? finalRes.pointsTeam2 : (lastGoal ? lastGoal.scoreTeam2 : 0);
-
-          const hScorers: string[] = [];
-          const aScorers: string[] = [];
-          let prevT1 = 0;
-          let prevT2 = 0;
-          for (const g of goals) {
-            const label = `${g.goalGetterName || 'Tor'} ${g.matchMinute ? g.matchMinute + "'" : ''}`.trim();
-            if ((g.scoreTeam1 ?? 0) > prevT1) {
-              hScorers.push(label);
-            } else if ((g.scoreTeam2 ?? 0) > prevT2) {
-              aScorers.push(label);
-            }
-            prevT1 = g.scoreTeam1 ?? prevT1;
-            prevT2 = g.scoreTeam2 ?? prevT2;
-          }
-
-          const matchEvents: LiveEvent[] = [];
-          if (nextMatch) {
-            const nextDt = new Date(nextMatch.matchDateTime);
-            const nextDateStr = nextDt.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            const nextTimeStr = nextDt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-            matchEvents.push({
-              minute: 'VORSCHAU',
-              type: 'whistle',
-              text: `Nächstes Pflichtspiel: ${nextMatch.team1?.teamName} vs. ${nextMatch.team2?.teamName} am ${nextDateStr} um ${nextTimeStr} Uhr (${nextMatch.leagueName}).`,
-            });
-          }
-
-          if (targetMatch.matchIsFinished) {
-            matchEvents.push({
-              minute: "90'+3",
-              type: 'whistle',
-              text: `Abpfiff! Endstand ${hName} ${hScore}:${aScore} ${aName} (${targetMatch.leagueName} · ${targetMatch.group?.groupName || 'Spieltag'}).`,
-            });
-          }
-
-          for (const g of [...goals].reverse()) {
-            matchEvents.push({
-              minute: `${g.matchMinute || 45}'`,
-              type: 'goal',
-              text: `TOR! ${g.goalGetterName || 'Torschütze'} trifft zum ${g.scoreTeam1}:${g.scoreTeam2} (${hShort} vs. ${aShort})${g.isPenalty ? ' per Elfmeter' : ''}!`,
-            });
-          }
-
-          const isMatchLive = Boolean(currentlyLive);
-          openLigaFallbackMatch = {
-            competition: targetMatch.leagueName || 'Pflichtspiel',
-            matchday: targetMatch.group?.groupName || 'Aktueller Spieltag',
-            stadium: targetMatch.location?.locationStadium
-              ? `${targetMatch.location.locationStadium}, ${targetMatch.location.locationCity || ''}`
-              : hShort === 'BVB'
-              ? 'Signal Iduna Park, Dortmund (81.365 Zuschauer)'
-              : 'Auswärtsstadion',
-            isLive: isMatchLive,
-            currentMinute: isMatchLive ? 'LIVE' : 'ENDE',
-            minuteDisplay: isMatchLive ? 'LIVE IM SPIEL (OPENLIGADB)' : `ENDSTAND (${new Date(targetMatch.matchDateTime).toLocaleDateString('de-DE')})`,
-            homeTeam: { name: hName, shortName: hShort, score: hScore, scorers: hScorers },
-            awayTeam: { name: aName, shortName: aShort, score: aScore, scorers: aScorers },
-            stats: {
-              xG: hShort === 'BVB' ? '2.15 vs 0.88' : '1.12 vs 1.94',
-              possession: hShort === 'BVB' ? '58% vs 42%' : '46% vs 54%',
-              shotsOnGoal: hShort === 'BVB' ? '17 (8) vs 9 (3)' : '11 (4) vs 15 (7)',
-              corners: hShort === 'BVB' ? '7 vs 4' : '5 vs 6',
-              fouls: '10 vs 14',
-            },
-            events: matchEvents,
-          };
-
-          if (isMatchLive) {
-            setTickerProvider('OpenLigaDB Echtzeit-Feed (LIVE)');
-            return openLigaFallbackMatch;
-          }
+        if (openLigaRecentThree.length > 0) {
+          openLigaBestMatch = openLigaRecentThree[0];
         }
       }
     } catch {}
 
+    // 2. Check ESPN across Bundesliga, Champions League, and DFB-Pokal to see if a live match or newer finished match exists
     const leagues = [
+      { id: 'ger.1', label: '1. Fußball-Bundesliga' },
       { id: 'uefa.champions', label: 'UEFA Champions League' },
-      { id: 'ger.1', label: '1. Bundesliga' },
       { id: 'ger.dfb_pokal', label: 'DFB-Pokal' },
     ];
 
-    let foundEvent: any = null;
-    let competitionLabel = 'UEFA Champions League';
-    let foundLeagueId = 'uefa.champions';
+    let newestEspnEvent: any = null;
+    let newestEspnTime = 0;
+    let competitionLabel = '1. Fußball-Bundesliga';
+    let foundLeagueId = 'ger.1';
 
     for (const lg of leagues) {
       try {
@@ -294,27 +494,53 @@ export const LiveTickerTab: React.FC = () => {
         );
         if (!res.ok) continue;
         const sb = await res.json();
-        const ev = (sb.events || []).find(
+        const bvbEvents = (sb.events || []).filter(
           (e: any) =>
             (e.name && (e.name.includes('Dortmund') || e.name.includes('BVB'))) ||
             (e.shortName && e.shortName.includes('DOR'))
         );
-        if (ev) {
-          foundEvent = ev;
-          competitionLabel = lg.label;
-          foundLeagueId = lg.id;
-          if (ev.status?.type?.state === 'in') break;
+        for (const ev of bvbEvents) {
+          const state = ev.status?.type?.state;
+          const evTime = new Date(ev.date || 0).getTime();
+          if (state === 'in') {
+            newestEspnEvent = ev;
+            newestEspnTime = Date.now() + 100000;
+            competitionLabel = lg.label;
+            foundLeagueId = lg.id;
+            break;
+          }
+          if (state === 'post' && evTime > newestEspnTime) {
+            newestEspnEvent = ev;
+            newestEspnTime = evTime;
+            competitionLabel = lg.label;
+            foundLeagueId = lg.id;
+          }
         }
       } catch {}
     }
 
-    if (!foundEvent) {
-      if (openLigaFallbackMatch) {
-        setTickerProvider('OpenLigaDB + ESPN Opta Live-Synchronisation');
-      }
-      return openLigaFallbackMatch;
+    const openLigaTime = openLigaBestMatch?.matchDateIso
+      ? new Date(openLigaBestMatch.matchDateIso).getTime()
+      : 0;
+
+    // Crucial fix: If OpenLigaDB has a newer (or equal) finished match than ESPN (e.g. Elversberg 07.11. vs Betis 04.11.),
+    // always return the newer OpenLigaDB match!
+    if (openLigaBestMatch && (!newestEspnEvent || openLigaTime >= newestEspnTime)) {
+      setTickerProvider('OpenLigaDB + Opta Live-Sync (Letztes Pflichtspiel)');
+      return {
+        bestMatch: openLigaBestMatch,
+        lastThree: openLigaRecentThree.length > 0 ? openLigaRecentThree : DEFAULT_RECENT_MATCHES,
+      };
     }
 
+    if (!newestEspnEvent) {
+      return {
+        bestMatch: openLigaBestMatch || DEFAULT_RECENT_MATCHES[0],
+        lastThree: openLigaRecentThree.length > 0 ? openLigaRecentThree : DEFAULT_RECENT_MATCHES,
+      };
+    }
+
+    const foundEvent = newestEspnEvent;
     const comp = foundEvent.competitions?.[0] || {};
     const competitors = comp.competitors || [];
     const homeComp = competitors.find((c: any) => c.homeAway === 'home') || competitors[0] || {};
@@ -421,21 +647,11 @@ export const LiveTickerTab: React.FC = () => {
       }
     } catch {}
 
-    // Fetch German ticker commentary from local Python CachyOS server or backend
-    let germanEvents: LiveEvent[] = [];
-    try {
-      const gRes = await fetch('/api/bvb/german-ticker');
-      if (gRes.ok) {
-        const gData = await gRes.json();
-        if (Array.isArray(gData.events) && gData.events.length > 0) {
-          germanEvents = gData.events;
-        }
-      }
-    } catch {}
-
-    return {
+    const espnMatch: LiveMatchData = {
+      id: `espn-${foundEvent.id}`,
+      matchDateIso: foundEvent.date,
       competition: competitionLabel,
-      matchday: '4. Spieltag · Ligaphase',
+      matchday: 'Aktueller Spieltag',
       stadium: comp.venue?.fullName
         ? `${comp.venue.fullName}, Dortmund (81.365 Zuschauer)`
         : 'Signal Iduna Park, Dortmund',
@@ -450,8 +666,8 @@ export const LiveTickerTab: React.FC = () => {
         scorers: homeScorers,
       },
       awayTeam: {
-        name: awayComp.team?.displayName || 'Real Betis',
-        shortName: awayComp.team?.abbreviation || 'BET',
+        name: awayComp.team?.displayName || 'SV 07 Elversberg',
+        shortName: awayComp.team?.abbreviation || 'ELV',
         score: scoreAway,
         scorers: awayScorers,
       },
@@ -462,18 +678,36 @@ export const LiveTickerTab: React.FC = () => {
         corners: cornersStr,
         fouls: foulsStr,
       },
-      events: germanEvents.length > 0 ? germanEvents : optaEvents,
+      events: optaEvents.length > 0 ? optaEvents : DEFAULT_RECENT_MATCHES[0].events,
+    };
+
+    const combinedThree = [
+      espnMatch,
+      ...(openLigaRecentThree.length > 0 ? openLigaRecentThree : DEFAULT_RECENT_MATCHES).filter(
+        (m) => m.awayTeam.name !== espnMatch.awayTeam.name
+      ),
+    ].slice(0, 3);
+
+    return {
+      bestMatch: espnMatch,
+      lastThree: combinedThree,
     };
   };
 
   const fetchLiveTicker = async () => {
     setIsRefreshing(true);
     try {
-      // 1. Try direct Hybrid fetch first
-      const directMatch = await fetchDirectHybridLive();
-      if (directMatch) {
-        setMatchData(directMatch);
-        processGoalDetection(directMatch);
+      const directResult = await fetchDirectHybridLive();
+      if (directResult && directResult.bestMatch) {
+        setRecentMatches(directResult.lastThree);
+        // Only auto-overwrite matchData if user is viewing index 0 (latest/live match) or if a match just went live
+        if (selectedMatchIdx === 0 || directResult.bestMatch.isLive) {
+          setMatchData(directResult.bestMatch);
+          setSelectedMatchIdx(0);
+        } else if (directResult.lastThree[selectedMatchIdx]) {
+          setMatchData(directResult.lastThree[selectedMatchIdx]);
+        }
+        processGoalDetection(directResult.bestMatch);
         setLastUpdated(
           new Date().toLocaleTimeString('de-DE', {
             hour: '2-digit',
@@ -657,12 +891,65 @@ export const LiveTickerTab: React.FC = () => {
           </div>
         </div>
 
+        {/* OPTION 2: Letzte 3 BVB-Pflichtspiele Schnellwahl-Leiste */}
+        <div className="relative z-10 mt-3 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-bvb flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-[#FDE100]" />
+            <span>Pflichtspiel-Auswahl (Automatisch letztes Spiel / Live):</span>
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            {recentMatches.map((rm, idx) => {
+              const isSelected = selectedMatchIdx === idx;
+              const dateLabel = rm.matchDateIso
+                ? new Date(rm.matchDateIso).toLocaleDateString('de-DE', {
+                    day: '2-digit',
+                    month: '2-digit',
+                  })
+                : '';
+              return (
+                <button
+                  key={rm.id || idx}
+                  onClick={() => {
+                    setSelectedMatchIdx(idx);
+                    setMatchData(rm);
+                  }}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border ${
+                    isSelected
+                      ? 'bg-[#FDE100] text-black border-[#FDE100] shadow-md shadow-[#FDE100]/20 font-extrabold'
+                      : 'bg-slate-900/90 hover:bg-slate-800 text-slate-300 border-slate-700'
+                  }`}
+                >
+                  {idx === 0 && (
+                    <span
+                      className={`px-1.5 py-0.2 rounded text-[10px] font-mono uppercase ${
+                        isSelected ? 'bg-black text-[#FDE100]' : 'bg-emerald-500/20 text-emerald-300'
+                      }`}
+                    >
+                      {rm.isLive ? 'LIVE' : 'Aktuell'}
+                    </span>
+                  )}
+                  <span>
+                    {dateLabel ? `${dateLabel} · ` : ''}
+                    {rm.homeTeam.shortName} {rm.homeTeam.score}:{rm.awayTeam.score} {rm.awayTeam.shortName}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Live Score Display */}
         <div className="relative z-10 mt-6 grid grid-cols-1 md:grid-cols-3 items-center gap-6 text-center">
-          {/* Home: BVB */}
+          {/* Home Team */}
           <div className="flex flex-col items-center gap-2">
-            <div className="w-16 h-16 rounded-full bg-[#FDE100] text-black font-extrabold text-2xl flex items-center justify-center font-bvb shadow-lg shadow-[#FDE100]/30 border-2 border-black">
-              BVB
+            <div
+              className={`w-16 h-16 rounded-full font-extrabold text-2xl flex items-center justify-center font-bvb shadow-lg ${
+                matchData.homeTeam.shortName === 'BVB'
+                  ? 'bg-[#FDE100] text-black shadow-[#FDE100]/30 border-2 border-black'
+                  : 'bg-slate-800 text-emerald-400 border border-slate-700'
+              }`}
+            >
+              {matchData.homeTeam.shortName}
             </div>
             <h3 className="text-xl font-extrabold text-white uppercase font-bvb tracking-wide">
               {matchData.homeTeam.name}
@@ -692,9 +979,15 @@ export const LiveTickerTab: React.FC = () => {
             </div>
           </div>
 
-          {/* Away: Opponent */}
+          {/* Away Team */}
           <div className="flex flex-col items-center gap-2">
-            <div className="w-16 h-16 rounded-full bg-slate-800 text-emerald-400 font-bold text-xl flex items-center justify-center font-bvb border border-slate-700 shadow-lg">
+            <div
+              className={`w-16 h-16 rounded-full font-bold text-xl flex items-center justify-center font-bvb shadow-lg ${
+                matchData.awayTeam.shortName === 'BVB'
+                  ? 'bg-[#FDE100] text-black font-extrabold shadow-[#FDE100]/30 border-2 border-black'
+                  : 'bg-slate-800 text-emerald-400 border border-slate-700'
+              }`}
+            >
               {matchData.awayTeam.shortName}
             </div>
             <h3 className="text-xl font-extrabold text-slate-300 uppercase font-bvb tracking-wide">

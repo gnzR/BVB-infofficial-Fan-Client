@@ -404,10 +404,10 @@ def build_serverless_html() -> str:
       return makeJsonResponse({
         success: true,
         events: [
-          { minute: "90'+4", type: "whistle", text: "Abpfiff im Signal Iduna Park! Borussia Dortmund besiegt Real Betis mit 2:1." },
-          { minute: "72'", type: "goal", text: "TOR FÜR DEN BVB! Konstantinos Karetsas (#19) trifft nach Vorlage von Jobe Bellingham (#7) zum 2:1!" },
-          { minute: "67'", type: "goal", text: "Ausgleich für Real Betis (1:1) durch Aitor Ruibal." },
-          { minute: "49'", type: "goal", text: "TOR FÜR DEN BVB! Fábio Silva (#21) verwandelt eiskalt nach Steckpass von Julian Brandt (1:0)!" }
+          { minute: "90'+4", type: "whistle", text: "Abpfiff im Signal Iduna Park! Borussia Dortmund besiegt die SV 07 Elversberg am 9. Spieltag mit 2:1." },
+          { minute: "81'", type: "goal", text: "Anschlusstreffer für die SV 07 Elversberg (2:1) durch N. Futkeu." },
+          { minute: "71'", type: "goal", text: "DOPPELPACK FÜR DEN BVB! Felix Nmecha (#8) erhöht vor 81.365 Zuschauern auf 2:0!" },
+          { minute: "55'", type: "goal", text: "TOR FÜR DEN BVB! Felix Nmecha (#8) bringt Borussia Dortmund mit einem wuchtigen Abschluss mit 1:0 in Führung!" }
         ]
       });
     }
@@ -441,8 +441,7 @@ def build_serverless_html() -> str:
     with open(out_html_path, "w", encoding="utf-8") as f:
         f.write(html_doc)
 
-    shutil.copy2(out_html_path, os.path.join(RELEASES_DIR, "BVB09-App.html"))
-    print(f"    -> BVB09-App.html erstellt ({os.path.getsize(out_html_path) // 1024} KB)")
+    print(f"    -> Temporäres Bundle erstellt ({os.path.getsize(out_html_path) // 1024} KB)")
     return out_html_path
 
 
