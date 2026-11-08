@@ -2,7 +2,7 @@
 
 > **100 % Kostenloses, ehrenamtliches Fanprojekt (Non-Profit)**  
 > Entwickelt von **w33derlich & Dobby** — erstellt und optimiert mithilfe von **Google Gemini**.  
-> Für **Windows 10/11** und **CachyOS / Arch Linux** (sowie als serverlose Single-File Web-App).
+> Für **Windows 10/11** und **CachyOS / Arch Linux**.
 
 ---
 
@@ -13,7 +13,6 @@ Alle fertig gebauten Programme liegen im Ordner [`/releases`](./releases) bereit
 
 | Plattform / Format | Datei im Ordner `/releases` | Für wen geeignet? |
 | :--- | :--- | :--- |
-| **🥇 1-Klick-Sofortstart (Universal)** | [`releases/BVB09-App.html`](./releases/BVB09-App.html) | **Die einfachste Methode für JEDEN (Windows, Linux, Mac):** Nur 1 Datei herunterladen, doppelt anklicken – läuft sofort ohne Installation! |
 | **🪟 Windows 10 / 11 (Empfohlen)** | [`releases/BVB-09-Windows-Portable.zip`](./releases/BVB-09-Windows-Portable.zip) | Komplettpaket mit Desktop-Symbol (`BVB09.exe`) & `Installation-Starten.cmd` (100 % ohne Windows-Defender-Warnmeldung). |
 | **🪟 Windows 10 / 11 Setup (.exe)** | [`releases/BVB-09-Windows-Setup.exe`](./releases/BVB-09-Windows-Setup.exe) | Klassischer Windows-Installations-Assistent (legt automatisch das BVB-Symbol auf deinen Desktop). |
 | **🐧 CachyOS / Arch Linux** | [`releases/bvb-09-cachyos-package.tar.gz`](./releases/bvb-09-cachyos-package.tar.gz) | Echtes Linux-Desktop-Programm inkl. `installer.sh`, `deinstall.sh` und Startmenü-Eintrag. |
@@ -46,22 +45,13 @@ Alle fertig gebauten Programme liegen im Ordner [`/releases`](./releases) bereit
 
 ### ⚠️ Vorab-Tipp: Wie lädt man hier auf GitHub überhaupt eine Datei herunter?
 Viele klicken auf GitHub auf eine Datei und wundern sich, dass kein Download startet. So geht's richtig:
-1. Klicke oben in der Tabelle auf die gewünschte Datei (z. B. `releases/BVB-09-Windows-Portable.zip`).
+1. Klicke oben in der Tabelle auf die gewünschte Datei (z. B. `releases/BVB-09-Windows-Portable.zip` oder `releases/bvb-09-cachyos-package.tar.gz`).
 2. Auf der nächsten Seite siehst du in der Mitte den Button **„View raw“** (oder oben rechts ein kleines Symbol mit einem **Pfeil nach unten 📥 „Download raw file“**).
 3. **Klicke genau darauf** – erst jetzt landet die Datei auf deinem Computer im Ordner `Downloads`!
 
 ---
 
-### 🥇 Variante 1: Die „Null-Stress-Methode“ (Dauert 5 Sekunden – für Windows, Linux & Mac)
-Wenn du überhaupt nichts installieren möchtest:
-1. Lade dir die Datei **[`releases/BVB09-App.html`](./releases/BVB09-App.html)** herunter *(Hinweis: Auf der GitHub-Seite der Datei oben rechts auf das Download-Symbol 📥 mit dem Pfeil nach unten klicken!)*.
-2. Öffne deinen `Downloads`-Ordner auf dem PC.
-3. Mache einfach einen **Doppelklick auf `BVB09-App.html`**.
-4. **Fertig!** Das Programm öffnet sich sofort komplett mit allen Live-Daten, Soundboard, Radio und Spielen. Du kannst dir die Datei einfach auf den Desktop ziehen.
-
----
-
-### 🪟 Variante 2: Installation unter Windows 10 & Windows 11 (Mit echtem Desktop-Icon)
+### 🪟 Variante 1: Installation unter Windows 10 & Windows 11 (Mit echtem Desktop-Icon)
 
 #### Weg A: Über die ZIP-Datei (Empfohlen – keine Windows-Warnfenster!)
 1. Lade dir **[`releases/BVB-09-Windows-Portable.zip`](./releases/BVB-09-Windows-Portable.zip)** herunter.
@@ -79,7 +69,7 @@ Wenn du überhaupt nichts installieren möchtest:
 
 ---
 
-### 🐧 Variante 3: Installation unter CachyOS / Arch Linux / Linux-Desktop
+### 🐧 Variante 2: Installation unter CachyOS / Arch Linux / Linux-Desktop
 
 1. Lade dir **[`releases/bvb-09-cachyos-package.tar.gz`](./releases/bvb-09-cachyos-package.tar.gz)** in deinen `Downloads`-Ordner herunter.
 2. **Methode mit der Maus:**

@@ -1,31 +1,20 @@
 # 🐣 Idiotensichere Installations-Anleitung (Schritt für Schritt)
 **Für den `BVB Inofficial Fan Client (Beta 1.9.0.9)`**
 
-Keine Sorge: Du musst kein Programmierer sein, um das Programm zu nutzen. Hier sind die **3 einfachsten Wege**, erklärt ohne Fachchinesisch.
+Keine Sorge: Du musst kein Programmierer sein, um das Programm zu nutzen. Hier sind die **einfachen Wege für Windows 10/11 und CachyOS / Linux**, erklärt ohne Fachchinesisch.
 
 ---
 
 ## ⚠️ Schritt 0: Wie lädt man auf GitHub überhaupt eine Datei herunter?
 
 Viele klicken auf GitHub auf einen Dateinamen und wundern sich, warum nichts heruntergeladen wird:
-1. Klicke im Ordner **[`/releases`](./releases)** auf die Datei, die du haben möchtest.
+1. Klicke im Ordner **[`/releases`](./releases)** auf die Datei für dein Betriebssystem (z. B. `BVB-09-Windows-Portable.zip` für Windows oder `bvb-09-cachyos-package.tar.gz` für Linux).
 2. Auf der nächsten Seite siehst du in der Mitte einen grauen Kasten mit dem Button **„View raw“** (oder oben rechts ein kleines Symbol mit einem **Pfeil nach unten 📥 „Download raw file“**).
 3. **Klicke genau darauf** – erst dann startet der Download und die Datei landet in deinem `Downloads`-Ordner!
 
 ---
 
-## 🥇 Methode 1: Die „5-Sekunden-Sofort-Methode“ (Für JEDEN PC – ohne Installation!)
-
-Egal ob du **Windows**, **Linux** oder einen **Mac** hast – das hier klappt immer und sofort:
-
-1. Lade die Datei **[`releases/BVB09-App.html`](./releases/BVB09-App.html)** herunter *(oben rechts auf das Download-Symbol 📥 mit dem Pfeil nach unten klicken)*.
-2. Öffne deinen `Downloads`-Ordner.
-3. Mache einen **Doppelklick auf `BVB09-App.html`**.
-4. **Das war's schon!** Das komplette BVB-Programm startet sofort. Du kannst dir die Datei einfach auf deinen Desktop ziehen und jederzeit per Doppelklick öffnen.
-
----
-
-## 🪟 Methode 2: Windows 10 & Windows 11 (Mit echtem BVB-Symbol auf dem Desktop)
+## 🪟 Methode 1: Windows 10 & Windows 11 (Mit echtem BVB-Symbol auf dem Desktop)
 
 ### Option A: Über die ZIP-Datei (Empfohlen – ohne Windows-Warnmeldungen!)
 1. Lade dir **[`releases/BVB-09-Windows-Portable.zip`](./releases/BVB-09-Windows-Portable.zip)** herunter.
@@ -44,7 +33,7 @@ Egal ob du **Windows**, **Linux** oder einen **Mac** hast – das hier klappt im
 
 ---
 
-## 🐧 Methode 3: CachyOS / Arch Linux / Linux-Desktop
+## 🐧 Methode 2: CachyOS / Arch Linux / Linux-Desktop
 
 1. Lade dir **[`releases/bvb-09-cachyos-package.tar.gz`](./releases/bvb-09-cachyos-package.tar.gz)** in deinen `Downloads`-Ordner herunter.
 2. Öffne dein **Terminal** (Konsole), kopiere den folgenden Befehl komplett hinein (`Strg+Shift+V`) und drücke **Enter**:
