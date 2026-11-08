@@ -20,6 +20,28 @@ Alle fertig gebauten Programme liegen im Ordner [`/releases`](./releases) bereit
 
 ---
 
+## 📸 Programm-Vorschau (Echte Standalone-Ansicht • Beta 1.9.0.9)
+
+### 1. 🏆 Königsklasse & DFB-Pokal Live-Center (mit klickbarer Kader-Verknüpfung)
+![Königsklasse & DFB-Pokal Live-Center](./docs/previews/01-koenigsklasse-pokal-live.png)
+
+### 2. 🔴 Match-Ticker & Live-Stadionwetter (Signal Iduna Park)
+![Match-Ticker & Stadionwetter](./docs/previews/02-match-ticker-stadionwetter.png)
+
+### 3. ⚽ Bundesliga-Zentrale (Live via OpenLigaDB)
+![Bundesliga-Zentrale](./docs/previews/03-bundesliga-zentrale.png)
+
+### 4. 👥 BVB-Profikader, Lazarett-Bericht & Taktiktafel (Cheftrainer: Niko Kovač)
+![BVB-Profikader & Taktiktafel](./docs/previews/04-bvb-profikader-taktik.png)
+
+### 5. ⏳ BVB-Zeitmaschine: 8 Jahrhundert-Tore & 60-FPS-Stadion-Engine
+![BVB-Zeitmaschine & 60-FPS-Engine](./docs/previews/05-zeitmaschine-torszenen.png)
+
+### 6. 📰 60-Tage BVB-Nachrichten-Archiv (Dedupliziert & Offline-fähig)
+![60-Tage BVB-Nachrichten-Archiv](./docs/previews/06-news-archiv.png)
+
+---
+
 ## 🐣 Idiotensichere Schritt-für-Schritt Installations-Anleitung (Ohne Fachchinesisch!)
 
 ### ⚠️ Vorab-Tipp: Wie lädt man hier auf GitHub überhaupt eine Datei herunter?
