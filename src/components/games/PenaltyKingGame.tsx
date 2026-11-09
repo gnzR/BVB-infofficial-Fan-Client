@@ -244,6 +244,9 @@ function playSoundFX(type: 'kick' | 'net' | 'post' | 'save' | 'catch') {
       osc.start();
       osc.stop(ctx.currentTime + 0.22);
     }
+    window.setTimeout(() => {
+      ctx.close().catch(() => {});
+    }, 800);
   } catch {
     // Ignore audio context errors if blocked by browser policy
   }

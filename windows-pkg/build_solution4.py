@@ -280,9 +280,47 @@ def build_serverless_html() -> str:
   }
 
   function decodeHtml(html) {
-    var txt = document.createElement("textarea");
-    txt.innerHTML = html;
-    return txt.value;
+    try {
+      if (typeof DOMParser !== "undefined") {
+        var doc = new DOMParser().parseFromString(String(html || ""), "text/html");
+        return (doc.documentElement && doc.documentElement.textContent) ? doc.documentElement.textContent : "";
+      }
+    } catch (e) {}
+    return String(html || "")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&#8211;/g, "–")
+      .replace(/&#8222;/g, "„")
+      .replace(/&#8220;/g, "“");
+  }
+
+  var ALLOWED_EXTERNAL_DOMAINS = [
+    "bvb.de",
+    "bvbwld.de",
+    "kicker.de",
+    "transfermarkt.de",
+    "ruhrnachrichten.de",
+    "espn.com",
+    "uefa.com",
+    "dfb.de",
+    "bundesliga.com",
+    "sportbild.bild.de"
+  ];
+
+  function isAllowedExternalUrl(rawUrl) {
+    try {
+      var parsed = new URL(rawUrl);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
+      var host = parsed.hostname.toLowerCase();
+      for (var i = 0; i < ALLOWED_EXTERNAL_DOMAINS.length; i++) {
+        var d = ALLOWED_EXTERNAL_DOMAINS[i];
+        if (host === d || host.endsWith("." + d)) return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
 
   window.fetch = function(input, init) {
@@ -298,7 +336,7 @@ def build_serverless_html() -> str:
         if (qIndex !== -1) {
           var params = new URLSearchParams(url.substring(qIndex + 1));
           var targetUrl = params.get("url");
-          if (targetUrl && (targetUrl.indexOf("http://") === 0 || targetUrl.indexOf("https://") === 0)) {
+          if (targetUrl && isAllowedExternalUrl(targetUrl)) {
             window.open(targetUrl, "_blank", "noopener,noreferrer");
           }
         }

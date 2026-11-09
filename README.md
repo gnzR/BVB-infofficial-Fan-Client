@@ -19,6 +19,38 @@ Alle fertig gebauten Programme liegen im Ordner [`/releases`](./releases) bereit
 
 ---
 
+## 🆕 Was ist neu in Version 1.9.0.9 (Changelog & Release Notes)
+
+![Version](https://img.shields.io/badge/Version-Beta_1.9.0.9-FDE100?style=flat-square&labelColor=000000&logoColor=FDE100)
+![Plattformen](https://img.shields.io/badge/Plattformen-Windows_10%2F11_%7C_CachyOS_%7C_Android-10b981?style=flat-square&labelColor=000000)
+![Security](https://img.shields.io/badge/Security_Audit-Gepr%C3%BCft_%26_Geh%C3%A4rtet-38bdf8?style=flat-square&labelColor=000000)
+
+### 🚀 Neue Features & Live-Module
+- **📅 Spieltags-Zentrale & 1-Klick `.ics` Kalender-Export**:
+  - Live-Spielplan aller kommenden BVB-Pflichtspiele (*Bundesliga, UEFA Champions League, DFB-Pokal*) via OpenLigaDB inkl. sekundengenauem Anpfiff-Countdown.
+  - 1-Klick `.ics`-Kalender-Export für Einzelspiele oder den gesamten Spielplan inkl. automatischer 30-Minuten-Erinnerung (`VALARM`).
+- **🔔 Echtzeit Tor-Alarm & Signal Iduna Park Torhymne**:
+  - Globales schwarzgelbes Stadion-Tor-Banner bei jedem Live-Tor von Borussia Dortmund.
+  - Synthetisierte Stadion-Torhymne (Nebelhorn + *„Olé, jetzt kommt der BVB!“*-Fanfare + Südtribünen-Jubel) via Web-Audio-API.
+- **⚔️ „Nächster Gegner“-Scouting & Head-to-Head Direktvergleich**:
+  - Live-Tabellenabgleich (Saison 2026/27), Formkurven, Schlüsselspieler und Taktik-Scouting für kommende Gegner (*Gladbach, FC Arsenal, Leverkusen, Frankfurt, Schalke 04*).
+- **🏟️ Originalgetreuer 1:1 Signal Iduna Park Blockplan (Blöcke 1–89)**:
+  - Exakte Stadion-Ausrichtung (*West oben, Ost unten, Süd links, Nord rechts*) inkl. aller 4 Eck-Kurven (*SW 35–39, NW 64–68, SO 85–89, NO 55–59*), Rollstuhl-/Sehbehinderten-Blöcken (*1–9*) und interaktiver Block-Suche (*„Wo ist mein Block?“*).
+- **👥 Live-Kader (32 Spieler + Trainer) & 📊 30-Tage-Statistik**:
+  - Wettbewerbsübergreifende Echtzeit-Leistungsdaten (`BL · CL · DFB`) für alle 32 BVB-Profis sowie automatische 30-Tage-Formbilanz (*letztes Spiel: BVB 2:1 SV 07 Elversberg*).
+
+### 🛡️ Security- & Bugfix-Update (Paket B)
+| Bereich | Status | Beschreibung der Behebung |
+| :--- | :---: | :--- |
+| **DOM-XSS Schutz** | ✅ Behoben | Unsicheres `innerHTML`-Parsing in `decodeHtml()` durch sicheres `DOMParser`-Text-Decoding ersetzt. |
+| **Local API & Allowlist** | ✅ Behoben | `/api/open-external` durch strikte Domain-Allowlist (`bvb.de`, `kicker.de`, `transfermarkt.de`, `bvbwld.de` etc.) und `127.0.0.1`-Origin-Prüfung abgesichert. |
+| **HTTP Security Header** | ✅ Behoben | `X-Content-Type-Options: nosniff`, `Referrer-Policy` und `X-Permitted-Cross-Domain-Policies` im Backend aktiviert. |
+| **Web-Audio Memory-Leak** | ✅ Behoben | Automatischer `AudioContext`-Lebenszyklus (`ctx.close()`) verhindert Ton-Ausfall nach mehrmaligem Abspielen von Torhymne, Trommel-Loop, Elfmeterschießen & Soundboard. |
+| **Tor-Alarm Timer-Fix** | ✅ Behoben | Vorherige Auto-Dismiss-Timer werden bei aufeinanderfolgenden Toren sauber per `clearTimeout` zurückgesetzt. |
+| **Windows & Android Build** | ✅ Behoben | Gzip-In-Memory-Bootloader (`665 KB`) für `BVB-09-Windows-Setup.exe` & `BVB-09-Windows-Portable.zip` sowie vollständiger 11-Routen-Interceptor im `file://`-Modus. |
+
+---
+
 ## 📸 Programm-Vorschau (Echte Standalone-Ansicht • Beta 1.9.0.9)
 
 ### 1. 🏆 Königsklasse & DFB-Pokal Live-Center (mit klickbarer Kader-Verknüpfung)

@@ -149,10 +149,17 @@ export function playBvbGoalAnthem(): void {
     crowdGain.connect(ctx.destination);
     whiteNoise.start(now);
     whiteNoise.stop(now + 3.5);
+
+    // Prevent Web Audio AudioContext resource leak
+    window.setTimeout(() => {
+      ctx.close().catch(() => {});
+    }, 3800);
   } catch (e) {
     console.warn('Audio synthesizer warning:', e);
   }
 }
+
+let activeDismissTimer: number | null = null;
 
 export function triggerGoalAlert(payload: GoalAlertPayload): void {
   if (!isGoalAlertEnabled() && !payload.isTest) return;
@@ -161,8 +168,22 @@ export function triggerGoalAlert(payload: GoalAlertPayload): void {
     playBvbGoalAnthem();
   }
 
+  if (activeDismissTimer !== null && typeof window !== 'undefined') {
+    window.clearTimeout(activeDismissTimer);
+    activeDismissTimer = null;
+  }
+
   for (const fn of listeners) {
     fn(payload);
+  }
+
+  if (typeof window !== 'undefined') {
+    activeDismissTimer = window.setTimeout(() => {
+      activeDismissTimer = null;
+      for (const fn of listeners) {
+        fn(null);
+      }
+    }, 12000);
   }
 
   // Native Desktop / Mobile Notification if supported
@@ -186,6 +207,10 @@ export function triggerGoalAlert(payload: GoalAlertPayload): void {
 }
 
 export function dismissGoalAlert(): void {
+  if (activeDismissTimer !== null && typeof window !== 'undefined') {
+    window.clearTimeout(activeDismissTimer);
+    activeDismissTimer = null;
+  }
   for (const fn of listeners) {
     fn(null);
   }

@@ -297,6 +297,9 @@ export function BvbChantStudioTab() {
         gain.connect(ctx.destination);
         osc.start();
         osc.stop(ctx.currentTime + 0.22);
+        window.setTimeout(() => {
+          ctx.close().catch(() => {});
+        }, 280);
       } catch {}
     }, beatIntervalMs);
   };
@@ -317,6 +320,12 @@ export function BvbChantStudioTab() {
       }
       if (micAnimFrameRef.current) {
         cancelAnimationFrame(micAnimFrameRef.current);
+      }
+      if (micAnalyserRef.current && micAnalyserRef.current.context) {
+        try {
+          (micAnalyserRef.current.context as AudioContext).close().catch(() => {});
+        } catch {}
+        micAnalyserRef.current = null;
       }
       setIsMicActive(false);
       setMicLevel(0);

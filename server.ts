@@ -12,7 +12,15 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '256kb' }));
+
+// Security Headers Middleware (Paket B Audit Hardening)
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  next();
+});
 
 // --- Real-Time BVB News Data ---
 const REALTIME_BVB_NEWS = [
@@ -274,6 +282,14 @@ function getAllFilesRecursively(dir: string, baseDir: string): { relativePath: s
 
 // Dedicated Package Downloads for CachyOS and Windows
 app.get('/api/download/bvb-09-cachyos-package.tar.gz', (req, res) => {
+  const prebuiltPath = path.resolve(__dirname, 'releases', 'bvb-09-cachyos-package.tar.gz');
+  if (fs.existsSync(prebuiltPath)) {
+    res.setHeader('Content-Type', 'application/gzip');
+    res.setHeader('Content-Disposition', 'attachment; filename="bvb-09-cachyos-package.tar.gz"');
+    res.sendFile(prebuiltPath);
+    return;
+  }
+
   const distDir = path.resolve(__dirname, 'dist');
   const chunks: Buffer[] = [];
 
@@ -1427,19 +1443,21 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=static_dir, **kwargs)
     def end_headers(self):
-        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Origin', f'http://127.0.0.1:{port}')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD')
-        self.send_header('Access-Control-Allow-Headers', '*')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
         super().end_headers()
     def do_OPTIONS(self):
         self.send_response(200)
         self.end_headers()
+    def do_POST(self):
+        self.do_GET()
     def do_GET(self):
         if self.path.startswith('/api/ping'):
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(b'{"status":"ok"}')
             return
@@ -1450,13 +1468,15 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
                 parsed = urllib.parse.urlparse(self.path)
                 params = urllib.parse.parse_qs(parsed.query)
                 target_url = params.get('url', [''])[0]
-                if target_url and (target_url.startswith('http://') or target_url.startswith('https://')):
+                u_parsed = urllib.parse.urlparse(target_url)
+                host = (u_parsed.hostname or '').lower()
+                allowed_domains = ('bvb.de', 'bvbwld.de', 'kicker.de', 'transfermarkt.de', 'ruhrnachrichten.de', 'espn.com', 'uefa.com', 'dfb.de', 'bundesliga.com', 'sportbild.bild.de')
+                if u_parsed.scheme in ('http', 'https') and any(host == d or host.endswith('.' + d) for d in allowed_domains):
                     subprocess.Popen(['xdg-open', target_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             except Exception:
                 pass
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(b'{"success": true}')
             return
@@ -1829,6 +1849,37 @@ app.get('/BVB-09-Android-Client.apk', (req, res) => {
 // API Routes (100% Pure Standalone)
 app.get('/api/ping', (req, res) => {
   res.json({ alive: true, ts: Date.now() });
+});
+
+const ALLOWED_EXTERNAL_HOSTS = [
+  'bvb.de',
+  'bvbwld.de',
+  'kicker.de',
+  'transfermarkt.de',
+  'ruhrnachrichten.de',
+  'espn.com',
+  'uefa.com',
+  'dfb.de',
+  'bundesliga.com',
+  'sportbild.bild.de',
+];
+
+app.all('/api/open-external', (req, res) => {
+  const rawUrl = String(req.query.url || '');
+  try {
+    const parsed = new URL(rawUrl);
+    const host = parsed.hostname.toLowerCase();
+    const isAllowed =
+      (parsed.protocol === 'https:' || parsed.protocol === 'http:') &&
+      ALLOWED_EXTERNAL_HOSTS.some((d) => host === d || host.endsWith(`.${d}`));
+    if (!isAllowed) {
+      res.status(400).json({ success: false, error: 'Domain not in allowlist' });
+      return;
+    }
+    res.json({ success: true, verifiedUrl: parsed.toString() });
+  } catch {
+    res.status(400).json({ success: false, error: 'Invalid URL' });
+  }
 });
 
 app.get('/api/bvb/news', async (req, res) => {
