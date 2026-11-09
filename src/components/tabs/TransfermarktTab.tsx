@@ -60,41 +60,59 @@ export const TransfermarktTab: React.FC = () => {
         }
       } catch {}
 
-      // Also enrich directly with live BVBWLD.de headlines (100% CORS-enabled)
+      // Also enrich directly with live BVBWLD.de headlines (cached with 15-min rate limit)
       try {
-        const wldRes = await fetch('https://bvbwld.de/wp-json/wp/v2/posts?per_page=15', { cache: 'no-store' });
-        if (wldRes.ok) {
-          const posts = await wldRes.json();
-          if (Array.isArray(posts)) {
-            currentDeals = currentDeals.map((deal) => {
-              const lastName = deal.playerName.split(' ').pop()?.toLowerCase() || '';
-              if (!lastName) return deal;
-              const matchingPost = posts.find((p: any) => {
-                const t = (p.title?.rendered || '').toLowerCase();
-                return t.includes(lastName);
-              });
-              if (matchingPost) {
-                const cleanTitle = (matchingPost.title?.rendered || '')
-                  .replace(/<[^>]*>/g, '')
-                  .replace(/&#8211;/g, '-')
-                  .replace(/&#8222;|&#8220;|&quot;/g, '"')
-                  .trim();
-                return {
-                  ...deal,
-                  details: `AKTUELL: ${cleanTitle} — ${deal.details}`,
-                  lastUpdated: matchingPost.date_gmt ? new Date(matchingPost.date_gmt + 'Z').toISOString() : new Date().toISOString(),
-                };
+        let posts: any[] = [];
+        const cacheTs = Number(localStorage.getItem('bvbwld_posts_cache_ts') || 0);
+        const cachedStr = localStorage.getItem('bvbwld_posts_cache_data');
+        if (Date.now() - cacheTs < 15 * 60 * 1000 && cachedStr) {
+          try { posts = JSON.parse(cachedStr); } catch {}
+        }
+        if (posts.length === 0) {
+          try {
+            const wldRes = await fetch('https://bvbwld.de/wp-json/wp/v2/posts?per_page=15', { cache: 'no-store' });
+            if (wldRes.ok) {
+              const data = await wldRes.json();
+              if (Array.isArray(data)) {
+                posts = data;
+                try {
+                  localStorage.setItem('bvbwld_posts_cache_ts', String(Date.now()));
+                  localStorage.setItem('bvbwld_posts_cache_data', JSON.stringify(data));
+                } catch {}
               }
-              return deal;
+            }
+          } catch {}
+        }
+
+        if (Array.isArray(posts) && posts.length > 0) {
+          currentDeals = currentDeals.map((deal) => {
+            const lastName = deal.playerName.split(' ').pop()?.toLowerCase() || '';
+            if (!lastName) return deal;
+            const matchingPost = posts.find((p: any) => {
+              const t = (p.title?.rendered || '').toLowerCase();
+              return t.includes(lastName);
             });
-            setLastSyncTime(
-              new Date().toLocaleTimeString('de-DE', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-              })
-            );
-          }
+            if (matchingPost) {
+              const cleanTitle = (matchingPost.title?.rendered || '')
+                .replace(/<[^>]*>/g, '')
+                .replace(/&#8211;/g, '-')
+                .replace(/&#8222;|&#8220;|&quot;/g, '"')
+                .trim();
+              return {
+                ...deal,
+                details: `AKTUELL: ${cleanTitle} — ${deal.details}`,
+                lastUpdated: matchingPost.date_gmt ? new Date(matchingPost.date_gmt + 'Z').toISOString() : new Date().toISOString(),
+              };
+            }
+            return deal;
+          });
+          setLastSyncTime(
+            new Date().toLocaleTimeString('de-DE', {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            })
+          );
         }
       } catch {}
 

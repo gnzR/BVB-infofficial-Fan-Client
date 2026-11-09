@@ -42,7 +42,7 @@ interface InfoModalProps {
   onClose: () => void;
 }
 
-export const CURRENT_APP_VERSION = '1.909.1';
+export const CURRENT_APP_VERSION = '1.909.2';
 export const GITHUB_REPO_OWNER = 'gnzR';
 export const GITHUB_REPO_NAME = 'BVB-infofficial-Fan-Client';
 export const GITHUB_REPO_URL = `https://github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}`;
@@ -181,10 +181,10 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
         releasedAt: new Date().toISOString().slice(0, 10),
         repositoryUrl: GITHUB_REPO_URL,
         changelog: [
+          'Neu in 1.909.2: News-Archiv auf 90+ Artikel verdreifacht (BVB.de, Transfermarkt, Kicker, Ruhr Nachrichten, BVBWLD.de)',
+          'Neu in 1.909.2: 15-Minuten API-Rate-Limit-Schutz & CORS-Resilienz für lokalen Standalone-Betrieb',
+          'Neu in 1.909.2: CachyOS Launcher mit optimierten Chromium/Browser-Flags (--allow-file-access-from-files)',
           'Neu in 1.909.1: Integrierter GitHub-Updater im Info-Bereich (Live-Versionsprüfung & 1-Klick-Update)',
-          'Neu: Fertige Android-APK (Absolute Beta) mit offiziellem BVB-09-Launcher-Icon & In-App-Vereinswappen',
-          'Neu: Originalgetreuer 1:1 Signal Iduna Park Blockplan (Blöcke 1–89, alle 4 Eck-Kurven & Block-Suche)',
-          'Security-Update (Paket B): DOM-XSS Schutz, Domain-Allowlist, Security-Header & Web-Audio Memory-Fix',
         ],
       });
       setUpdateStatus('up_to_date');

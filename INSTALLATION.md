@@ -1,5 +1,5 @@
 # 🐣 Idiotensichere Installations-Anleitung (Schritt für Schritt)
-**Für den `BVB Inofficial Fan Client (Beta 1.909.1)`**
+**Für den `BVB Inofficial Fan Client (Beta 1.909.2)`**
 
 Keine Sorge: Du musst kein Programmierer sein, um das Programm zu nutzen. Hier sind die **einfachen Wege für Windows 10/11 und CachyOS / Linux**, erklärt ohne Fachchinesisch.
 

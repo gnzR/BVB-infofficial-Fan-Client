@@ -156,7 +156,7 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete }) => {
             BVB Inofficial Fan Client
           </span>
           <span className="px-2 py-0.5 rounded bg-[#FDE100] text-black font-mono font-extrabold text-[11px] shadow-md shadow-[#FDE100]/20">
-            Beta 1.909.1
+            Beta 1.909.2
           </span>
         </div>
       </div>
@@ -174,7 +174,7 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete }) => {
                 <span>Interne Datenbank-Synchronisation</span>
               </h2>
               <p className="text-xs text-slate-400">
-                BVB Inofficial Fan Client · <span className="text-[#FDE100] font-mono">Beta 1.909.1</span>
+                BVB Inofficial Fan Client · <span className="text-[#FDE100] font-mono">Beta 1.909.2</span>
               </p>
             </div>
           </div>

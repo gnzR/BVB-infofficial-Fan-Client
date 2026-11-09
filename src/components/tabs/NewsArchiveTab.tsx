@@ -13,6 +13,7 @@ import {
   HardDrive,
   Info,
   Sparkles,
+  Clock,
 } from 'lucide-react';
 import {
   BvbNewsArticle,
@@ -34,6 +35,7 @@ export const NewsArchiveTab: React.FC = () => {
   const [lastSyncTime, setLastSyncTime] = useState<string>('gerade eben');
   const [newlyAddedCount, setNewlyAddedCount] = useState<number | null>(null);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
+  const [cooldownRemainingMins, setCooldownRemainingMins] = useState<number>(15);
 
   const loadLocalArchive = async () => {
     const list = await get60DayBvbArticles();
@@ -58,7 +60,7 @@ export const NewsArchiveTab: React.FC = () => {
           setSyncProgress(pct);
           setSyncStepText(step);
         }
-      });
+      }, !silent);
       setArticles(result.articles);
       setNewlyAddedCount(result.newArticlesCount);
       setLastSyncTime(
@@ -83,6 +85,28 @@ export const NewsArchiveTab: React.FC = () => {
       // 2. Automated background live update to ensure latest news are always fresh
       executeSync(true);
     });
+
+    // 3. Option 3: Continuous 15-minute interval check and remaining cooldown calculator
+    const checkCooldownAndSync = () => {
+      const last = Number(localStorage.getItem('bvb_archive_last_sync_ts') || 0);
+      const elapsed = Date.now() - last;
+      const cooldownMs = 15 * 60 * 1000;
+      if (last > 0 && elapsed < cooldownMs) {
+        const remaining = Math.max(1, Math.ceil((cooldownMs - elapsed) / 60000));
+        setCooldownRemainingMins(remaining);
+      } else {
+        setCooldownRemainingMins(0);
+        // Cooldown passed: trigger background sync automatically
+        executeSync(true);
+      }
+    };
+
+    checkCooldownAndSync();
+    const intervalId = window.setInterval(checkCooldownAndSync, 30000); // Check every 30s
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   const handleManualSync = () => {
@@ -220,6 +244,31 @@ export const NewsArchiveTab: React.FC = () => {
             <span className="text-[11px] text-slate-400 font-mono">
               Letztes Update: {lastSyncTime}
             </span>
+          </div>
+        </div>
+
+        {/* Option 3: Live Automatic 15-Minute Background Sync Status Bar */}
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-800/80 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 font-mono text-[11px]">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Option 3 aktiv: Automatischer 15-Minuten-Hintergrund-Sync</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-mono text-[11px]">
+              <Clock className="w-3.5 h-3.5 text-[#FDE100]" />
+              <span>
+                {cooldownRemainingMins > 0
+                  ? `Nächster Auto-Check in ~${cooldownRemainingMins} Min.`
+                  : 'Auto-Check bereit'}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-[#FDE100]/30 text-[#FDE100] font-mono text-[11px] font-bold">
+              <Database className="w-3.5 h-3.5 text-[#FDE100]" />
+              <span>{articles.length} BVB-Meldungen im Offline-Archiv</span>
+            </div>
           </div>
         </div>
 

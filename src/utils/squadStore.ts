@@ -429,24 +429,42 @@ export async function syncLiveBvbSquad(
       coachEntry.contractUntil = '30.06.2029';
       coachEntry.transfermarktUrl = 'https://www.transfermarkt.de/niko-kovac/profil/trainer/10412';
 
-      const wldRes = await fetch('https://bvbwld.de/wp-json/wp/v2/posts?per_page=15', {
-        signal: AbortSignal.timeout(3500),
-      });
-      if (wldRes.ok) {
-        const posts = await wldRes.json();
-        if (Array.isArray(posts)) {
-          const kovacPost = posts.find((post: any) => {
-            const title = (post?.title?.rendered || '').toLowerCase();
-            return title.includes('kovac') || title.includes('kovač');
+      let posts: any[] = [];
+      const cacheTs = Number(localStorage.getItem('bvbwld_posts_cache_ts') || 0);
+      const cachedStr = localStorage.getItem('bvbwld_posts_cache_data');
+      if (Date.now() - cacheTs < 15 * 60 * 1000 && cachedStr) {
+        try { posts = JSON.parse(cachedStr); } catch {}
+      }
+      if (posts.length === 0) {
+        try {
+          const wldRes = await fetch('https://bvbwld.de/wp-json/wp/v2/posts?per_page=15', {
+            signal: AbortSignal.timeout(3500),
           });
-          if (kovacPost?.title?.rendered) {
-            const cleanHeadline = kovacPost.title.rendered
-              .replace(/<[^>]*>/g, '')
-              .replace(/&#8211;/g, '-')
-              .replace(/&#8222;|&#8220;|&quot;/g, '"')
-              .trim();
-            coachEntry.activeRumor = `Aktuell (BVBWLD.de): ${cleanHeadline}`;
+          if (wldRes.ok) {
+            const data = await wldRes.json();
+            if (Array.isArray(data)) {
+              posts = data;
+              try {
+                localStorage.setItem('bvbwld_posts_cache_ts', String(Date.now()));
+                localStorage.setItem('bvbwld_posts_cache_data', JSON.stringify(data));
+              } catch {}
+            }
           }
+        } catch {}
+      }
+
+      if (Array.isArray(posts) && posts.length > 0) {
+        const kovacPost = posts.find((post: any) => {
+          const title = (post?.title?.rendered || '').toLowerCase();
+          return title.includes('kovac') || title.includes('kovač');
+        });
+        if (kovacPost?.title?.rendered) {
+          const cleanHeadline = kovacPost.title.rendered
+            .replace(/<[^>]*>/g, '')
+            .replace(/&#8211;/g, '-')
+            .replace(/&#8222;|&#8220;|&quot;/g, '"')
+            .trim();
+          coachEntry.activeRumor = `Aktuell (BVBWLD.de): ${cleanHeadline}`;
         }
       }
     }

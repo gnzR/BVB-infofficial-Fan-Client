@@ -17,6 +17,7 @@ import { InstallerGeneratorModal } from './components/InstallerGeneratorModal';
 import { SchalkerEasterEggModal } from './components/SchalkerEasterEggModal';
 import { getUserProfile, UserBVBProfile } from './utils/userProfile';
 import { getNotificationArchive } from './utils/notificationSystem';
+import { sync60DayBvbArchive } from './utils/bvbArchiveStore';
 
 export default function App() {
   const isInstalledClient = (() => {
@@ -90,6 +91,22 @@ export default function App() {
     const intervalId = window.setInterval(sendHeartbeat, 5000);
 
     return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  // Option 3: Global continuous 15-minute background news sync (with rate limit cooldown)
+  useEffect(() => {
+    const runBgSync = () => {
+      sync60DayBvbArchive(undefined, false).catch(() => {});
+    };
+    // Initial run after splash screen finishes (~8s)
+    const initialTimer = window.setTimeout(runBgSync, 8000);
+    // Continuous 15-minute interval (900,000 ms)
+    const intervalId = window.setInterval(runBgSync, 15 * 60 * 1000);
+
+    return () => {
+      window.clearTimeout(initialTimer);
       window.clearInterval(intervalId);
     };
   }, []);

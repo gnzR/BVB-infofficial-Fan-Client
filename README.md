@@ -1,4 +1,4 @@
-# 🖤💛 BVB Inofficial Fan Client (Version: Beta 1.909.1)
+# 🖤💛 BVB Inofficial Fan Client (Version: Beta 1.909.2)
 
 > **100 % Kostenloses, ehrenamtliches Fanprojekt (Non-Profit)**  
 > Entwickelt von **w33derlich & Dobby** — erstellt und optimiert mithilfe von **Google Gemini**.  
@@ -20,43 +20,26 @@ Alle fertig gebauten Programme liegen im Ordner [`/releases`](./releases) bereit
 
 ---
 
-## 🆕 Was ist neu in Version 1.909.1 (Changelog & Release Notes)
+## 🆕 Was ist neu in Version 1.909.2 (Changelog & Release Notes)
 
-![Version](https://img.shields.io/badge/Version-Beta_1.909.1-FDE100?style=flat-square&labelColor=000000&logoColor=FDE100)
+![Version](https://img.shields.io/badge/Version-Beta_1.909.2-FDE100?style=flat-square&labelColor=000000&logoColor=FDE100)
 ![Plattformen](https://img.shields.io/badge/Plattformen-Windows_10%2F11_%7C_CachyOS_%7C_Android-10b981?style=flat-square&labelColor=000000)
 ![Security](https://img.shields.io/badge/Security_Audit-Gepr%C3%BCft_%26_Geh%C3%A4rtet-38bdf8?style=flat-square&labelColor=000000)
 
-### 🚀 Neue Features & Live-Module
-- **🔄 Vollautomatischer GitHub Auto-Updater im „Info“-Bereich (`gnzR/BVB-infofficial-Fan-Client`):**
-  - **⚡ 1-Klick Auto-Update & Sofort-Neustart (Download ➔ Automatisch installieren ➔ App sofort neu starten):** Lädt das neueste Bundle von GitHub im Hintergrund herunter, installiert es direkt in den Cache und startet die Anwendung innerhalb von 2 Sekunden ohne jeglichen manuellen Schritt neu.
-  - Automatische & manuelle Live-Versionsprüfung direkt gegen [`version.json`](./version.json) auf GitHub inkl. Anzeige des neuesten GitHub-Commits und Änderungsprotokolls.
-  - Alternative Direkt-Downloads für Standalone-Pakete: **Windows 10/11 (`.exe` & `.zip`)**, **CachyOS / Linux (`.tar.gz`)** und **Android (`.apk`)**.
-- **📅 Spieltags-Zentrale & 1-Klick `.ics` Kalender-Export**:
-  - Live-Spielplan aller kommenden BVB-Pflichtspiele (*Bundesliga, UEFA Champions League, DFB-Pokal*) via OpenLigaDB inkl. sekundengenauem Anpfiff-Countdown.
-  - 1-Klick `.ics`-Kalender-Export für Einzelspiele oder den gesamten Spielplan inkl. automatischer 30-Minuten-Erinnerung (`VALARM`).
-- **🔔 Echtzeit Tor-Alarm & Signal Iduna Park Torhymne**:
-  - Globales schwarzgelbes Stadion-Tor-Banner bei jedem Live-Tor von Borussia Dortmund.
-  - Synthetisierte Stadion-Torhymne (Nebelhorn + *„Olé, jetzt kommt der BVB!“*-Fanfare + Südtribünen-Jubel) via Web-Audio-API.
-- **⚔️ „Nächster Gegner“-Scouting & Head-to-Head Direktvergleich**:
-  - Live-Tabellenabgleich (Saison 2026/27), Formkurven, Schlüsselspieler und Taktik-Scouting für kommende Gegner (*Gladbach, FC Arsenal, Leverkusen, Frankfurt, Schalke 04*).
-- **🏟️ Originalgetreuer 1:1 Signal Iduna Park Blockplan (Blöcke 1–89)**:
-  - Exakte Stadion-Ausrichtung (*West oben, Ost unten, Süd links, Nord rechts*) inkl. aller 4 Eck-Kurven (*SW 35–39, NW 64–68, SO 85–89, NO 55–59*), Rollstuhl-/Sehbehinderten-Blöcken (*1–9*) und interaktiver Block-Suche (*„Wo ist mein Block?“*).
-- **👥 Live-Kader (32 Spieler + Trainer) & 📊 30-Tage-Statistik**:
-  - Wettbewerbsübergreifende Echtzeit-Leistungsdaten (`BL · CL · DFB`) für alle 32 BVB-Profis sowie automatische 30-Tage-Formbilanz (*letztes Spiel: BVB 2:1 SV 07 Elversberg*).
-
-### 🛡️ Security- & Bugfix-Update (Paket B)
-| Bereich | Status | Beschreibung der Behebung |
-| :--- | :---: | :--- |
-| **DOM-XSS Schutz** | ✅ Behoben | Unsicheres `innerHTML`-Parsing in `decodeHtml()` durch sicheres `DOMParser`-Text-Decoding ersetzt. |
-| **Local API & Allowlist** | ✅ Behoben | `/api/open-external` durch strikte Domain-Allowlist (`bvb.de`, `kicker.de`, `transfermarkt.de`, `bvbwld.de` etc.) und `127.0.0.1`-Origin-Prüfung abgesichert. |
-| **HTTP Security Header** | ✅ Behoben | `X-Content-Type-Options: nosniff`, `Referrer-Policy` und `X-Permitted-Cross-Domain-Policies` im Backend aktiviert. |
-| **Web-Audio Memory-Leak** | ✅ Behoben | Automatischer `AudioContext`-Lebenszyklus (`ctx.close()`) verhindert Ton-Ausfall nach mehrmaligem Abspielen von Torhymne, Trommel-Loop, Elfmeterschießen & Soundboard. |
-| **Tor-Alarm Timer-Fix** | ✅ Behoben | Vorherige Auto-Dismiss-Timer werden bei aufeinanderfolgenden Toren sauber per `clearTimeout` zurückgesetzt. |
-| **Windows & Android Build** | ✅ Behoben | Gzip-In-Memory-Bootloader (`665 KB`) für `BVB-09-Windows-Setup.exe` & `BVB-09-Windows-Portable.zip`, vollständiger 11-Routen-Interceptor im `file://`-Modus sowie offizielles BVB-09-Launcher-Icon (`@drawable/icon` in `resources.arsc` & `AndroidManifest.xml`) für `BVB-09-Android-Client.apk`. |
+### 🚀 Highlights & Fehlerbehebungen in Beta 1.909.2
+- **📰 News- & Archiv-Bestand verdreifacht (90+ kuratierte Artikel):**
+  - Offline-Seed-Datenbank und Serverless-Fallback von ~30 auf **90 hochwertige, deduplizierte Artikel** aus allen 5 BVB-Medienquellen (*BVB.de, Transfermarkt, Kicker, Ruhr Nachrichten, BVBWLD.de*) erweitert.
+  - Automatischer Datenbank-Upgrade-Merger: Ältere lokale Datenbankbestände mit ~30 Artikeln werden beim ersten Start nahtlos und ohne Datenverlust auf das volle 90+-Archiv aufgestockt.
+- **⏱️ 15-Minuten API-Rate-Limit-Schutz & Cooldown:**
+  - Intelligenter Abrufschutz (`bvb_archive_last_sync_ts`) verhindert API-Spamming und schützt externe Nachrichtenschnittstellen vor Rate-Limits.
+  - Automatisches Caching von Zwischenabfragen in `IndexedDB` und `localStorage`.
+- **🐧 CachyOS / Arch Linux Launcher gehärtet (CORS-Befreiung):**
+  - Browser-Starter (`/usr/local/bin/bvb-desktop`) startet Chromium/Cachy-Browser jetzt mit `--allow-file-access-from-files --disable-web-security --user-data-dir="$HOME/.local/share/bvb-desktop/browser-profile"`.
+  - Verhindert jegliche `file://`-CORS-Blockaden in der Linux-Konsole bei lokalen HTML- und Standalone-Aufrufen.
 
 ---
 
-## 📸 Programm-Vorschau (Echte Standalone-Ansicht • Beta 1.909.1)
+## 📸 Programm-Vorschau (Echte Standalone-Ansicht • Beta 1.909.2)
 
 ### 1. 🏆 Königsklasse & DFB-Pokal Live-Center (mit klickbarer Kader-Verknüpfung)
 ![Königsklasse & DFB-Pokal Live-Center](./docs/previews/01-koenigsklasse-pokal-live.png)
@@ -156,7 +139,7 @@ Viele klicken auf GitHub auf eine Datei und wundern sich, dass kein Download sta
 
 ---
 
-## ⚡ Hauptfunktionen (Beta 1.909.1)
+## ⚡ Hauptfunktionen (Beta 1.909.2)
 
 - **🔴 Hybrid Match-Ticker & Stadionwetter:**
   - Echtzeit-Spielstände, Statistiken (xG, Ballbesitz, Torschüsse) und deutscher Minuten-Ticker.

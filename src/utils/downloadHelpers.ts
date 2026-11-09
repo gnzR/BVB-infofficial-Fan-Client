@@ -272,7 +272,7 @@ fi
 cat << 'EOF_PKG' > "$APP_DIR/package.json"
 {
   "name": "bvb-09-desktop",
-  "version": "1.909.1",
+  "version": "1.909.2",
   "main": "main.js"
 }
 EOF_PKG
@@ -284,8 +284,8 @@ cat << 'EOF_LAUNCH' | sudo tee /usr/local/bin/bvb-desktop > /dev/null
 APP_DIR="$HOME/.local/share/bvb-desktop"
 URL="https://ais-dev-a4ucmpexmsyfnythpfqhbn-616816524413.europe-west3.run.app"
 
-# Sichere Flags gegen GLib/Wayland SIGTRAP und FILE_ERROR_NO_SPACE
-FLAGS="--disable-dev-shm-usage --no-sandbox --disable-gpu --disable-gpu-sandbox --ozone-platform=x11"
+# Sichere Flags gegen GLib/Wayland SIGTRAP und FILE_ERROR_NO_SPACE sowie CORS-Schutz
+FLAGS="--disable-dev-shm-usage --no-sandbox --disable-gpu --disable-gpu-sandbox --ozone-platform=x11 --allow-file-access-from-files --disable-web-security --user-data-dir=$HOME/.local/share/bvb-desktop/browser-profile"
 
 # Leitet Strg+C sauber ab
 trap 'kill $(jobs -p) 2>/dev/null; exit 0' SIGINT SIGTERM
@@ -441,7 +441,7 @@ EOF_MAIN
 cat << 'EOF_PKG' > "$APP_DIR/package.json"
 {
   "name": "bvb-09-desktop",
-  "version": "1.909.1",
+  "version": "1.909.2",
   "main": "main.js"
 }
 EOF_PKG
@@ -450,7 +450,7 @@ cat << 'EOF_LAUNCH' | sudo tee /usr/local/bin/bvb-desktop > /dev/null
 #!/usr/bin/env bash
 APP_DIR="$HOME/.local/share/bvb-desktop"
 URL="https://ais-dev-a4ucmpexmsyfnythpfqhbn-616816524413.europe-west3.run.app"
-FLAGS="--disable-dev-shm-usage --no-sandbox --disable-gpu --disable-gpu-sandbox --ozone-platform=x11"
+FLAGS="--disable-dev-shm-usage --no-sandbox --disable-gpu --disable-gpu-sandbox --ozone-platform=x11 --allow-file-access-from-files --disable-web-security --user-data-dir=$HOME/.local/share/bvb-desktop/browser-profile"
 trap 'kill $(jobs -p) 2>/dev/null; exit 0' SIGINT SIGTERM
 
 if command -v electron &>/dev/null; then
