@@ -1,13 +1,13 @@
 {
-  "version": "1.909.2",
-  "versionCode": 19092,
+  "version": "1.909.3",
+  "versionCode": 19093,
   "releasedAt": "2026-11-09",
   "repositoryUrl": "https://github.com/gnzR/BVB-infofficial-Fan-Client",
   "changelog": [
+    "Neu in 1.909.3: Intelligenter Deeplink-Resolver – fängt generische Portal-URLs (/bvb/, /news.html) ab und führt direkt zum spezifischen Artikel",
+    "Neu in 1.909.3: Auto-Unwrap von RSS- und Tracking-Weiterleitungen (Bing/Google) zur echten Verlagsquelle",
     "Neu in 1.909.2: News-Archiv auf 90+ Artikel verdreifacht (BVB.de, Transfermarkt, Kicker, Ruhr Nachrichten, BVBWLD.de)",
-    "Neu in 1.909.2: 15-Minuten API-Rate-Limit-Schutz & CORS-Resilienz für lokalen Standalone-Betrieb",
-    "Neu in 1.909.2: CachyOS Launcher mit optimierten Chromium/Browser-Flags (--allow-file-access-from-files)",
-    "Neu in 1.909.1: Vollautomatischer GitHub-Updater im Info-Bereich (Download ➔ Auto-Install ➔ Sofort-Neustart)"
+    "Neu in 1.909.2: 15-Minuten API-Rate-Limit-Schutz & CORS-Resilienz für lokalen Standalone-Betrieb"
   ],
   "downloads": {
     "windowsPortableZip": "https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Windows-Portable.zip",

@@ -42,7 +42,7 @@ interface InfoModalProps {
   onClose: () => void;
 }
 
-export const CURRENT_APP_VERSION = '1.909.2';
+export const CURRENT_APP_VERSION = '1.909.3';
 export const GITHUB_REPO_OWNER = 'gnzR';
 export const GITHUB_REPO_NAME = 'BVB-infofficial-Fan-Client';
 export const GITHUB_REPO_URL = `https://github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}`;
@@ -181,10 +181,10 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
         releasedAt: new Date().toISOString().slice(0, 10),
         repositoryUrl: GITHUB_REPO_URL,
         changelog: [
+          'Neu in 1.909.3: Intelligenter Deeplink-Resolver (fängt generische Rubrik-Links ab und führt gezielt zum Artikel)',
+          'Neu in 1.909.3: Automatisches Entpacken von Tracking-Weiterleitungen zur Originalquelle',
           'Neu in 1.909.2: News-Archiv auf 90+ Artikel verdreifacht (BVB.de, Transfermarkt, Kicker, Ruhr Nachrichten, BVBWLD.de)',
           'Neu in 1.909.2: 15-Minuten API-Rate-Limit-Schutz & CORS-Resilienz für lokalen Standalone-Betrieb',
-          'Neu in 1.909.2: CachyOS Launcher mit optimierten Chromium/Browser-Flags (--allow-file-access-from-files)',
-          'Neu in 1.909.1: Integrierter GitHub-Updater im Info-Bereich (Live-Versionsprüfung & 1-Klick-Update)',
         ],
       });
       setUpdateStatus('up_to_date');

@@ -23,58 +23,87 @@ const LOCAL_STORAGE_KEY = 'bvb_archive_60days_cache_v7';
 export function getDirectArticleUrl(title: string, url: string, source: string): string {
   const pub = (source || '').toLowerCase();
   const cleanTitle = (title || '')
-    .replace(/^(BVBWLD\.de|Transfermarkt Spezial|Transfermarkt Gerüchte-Küche|Kicker-Taktikanalyse|Kicker Verletzungs-Update|Ruhr Nachrichten Exklusiv|Ruhr Nachrichten Insider|Ticker zum Champions-League-Spiel|DFB-Pokal)[:\s-]+/i, '')
+    .replace(/^(BVBWLD\.de|Transfermarkt Spezial|Transfermarkt Gerüchte-Küche|Kicker-Taktikanalyse|Kicker Verletzungs-Update|Ruhr Nachrichten Exklusiv|Ruhr Nachrichten Insider|Ticker zum Champions-League-Spiel|DFB-Pokal|Live-Ticker|Ticker Thread)[:\s-]+/i, '')
     .trim();
 
-  // 1. Direct valid article URLs from BVBWLD
-  if (url && url.startsWith('https://bvbwld.de/') && !url.includes('/feed') && !url.includes('/wp-json')) {
-    return url;
-  }
-  if (pub.includes('bvbwld')) {
-    return url && url.startsWith('http') && !url.includes('google.com') && !url.includes('bing.com')
-      ? url
-      : `https://bvbwld.de/?s=${encodeURIComponent(cleanTitle)}`;
+  // Helper: check if a URL is merely a generic landing page or section root
+  const isGenericOverview = (u: string): boolean => {
+    if (!u) return true;
+    const trimmed = u.trim().replace(/\/+$/, '');
+    return (
+      trimmed.endsWith('aktuelles/news.html') ||
+      trimmed.endsWith('aktuelles/news') ||
+      trimmed.endsWith('/aktuelles') ||
+      trimmed.endsWith('ruhrnachrichten.de/bvb') ||
+      trimmed.endsWith('ruhrnachrichten.de') ||
+      trimmed.endsWith('kicker.de/borussia-dortmund/news') ||
+      trimmed.endsWith('kicker.de/borussia-dortmund') ||
+      trimmed.endsWith('kicker.de') ||
+      trimmed.endsWith('transfermarkt.de/borussia-dortmund/startseite/verein/16') ||
+      trimmed.endsWith('transfermarkt.de') ||
+      trimmed.endsWith('bvbwld.de') ||
+      trimmed.endsWith('bvb.de')
+    );
+  };
+
+  // 1. Unwrap tracking redirects (Bing news, Google URL redirects)
+  if (url && (url.includes('bing.com/news/apiclick') || url.includes('google.com/url'))) {
+    try {
+      const parsed = new URL(url);
+      const target = parsed.searchParams.get('url') || parsed.searchParams.get('q');
+      if (target && target.startsWith('http')) {
+        return decodeURIComponent(target);
+      }
+    } catch {}
   }
 
-  // 2. Direct valid article URLs from Transfermarkt
-  if (url && url.includes('transfermarkt.de/') && (url.includes('/profil/') || url.includes('/aktuell/') || url.includes('/news/'))) {
-    return url;
+  // 2. BVBWLD.de
+  if (pub.includes('bvbwld') || (url && url.includes('bvbwld.de'))) {
+    if (url && url.includes('bvbwld.de/20') && !isGenericOverview(url)) {
+      return url;
+    }
+    return `https://bvbwld.de/?s=${encodeURIComponent(cleanTitle)}`;
   }
-  if (pub.includes('transfermarkt')) {
+
+  // 3. Ruhr Nachrichten
+  if (pub.includes('ruhr') || (url && url.includes('ruhrnachrichten.de'))) {
+    if (url && url.includes('ruhrnachrichten.de/') && !isGenericOverview(url) && url.length > 35) {
+      return url;
+    }
+    return `https://www.ruhrnachrichten.de/?s=${encodeURIComponent('BVB ' + cleanTitle)}`;
+  }
+
+  // 4. Official BVB.de
+  if (pub.includes('bvb') || (url && url.includes('bvb.de'))) {
+    if (url && url.includes('/news/') && !isGenericOverview(url) && !url.endsWith('news.html')) {
+      return url;
+    }
+    return `https://www.google.com/search?q=${encodeURIComponent('site:bvb.de ' + cleanTitle)}`;
+  }
+
+  // 5. Transfermarkt
+  if (pub.includes('transfermarkt') || (url && url.includes('transfermarkt.de'))) {
+    if (url && (url.includes('/view/news/') || url.includes('/profil/spieler/')) && !isGenericOverview(url)) {
+      return url;
+    }
     return `https://www.transfermarkt.de/schnellsuche/ergebnis/schnellsuche?query=${encodeURIComponent(cleanTitle)}`;
   }
 
-  // 3. Direct valid article URLs from Kicker
-  if (url && url.includes('kicker.de/') && !url.endsWith('/news') && !url.endsWith('kicker.de/')) {
-    return url;
-  }
-  if (pub.includes('kicker')) {
-    return `https://www.kicker.de/suche?query=${encodeURIComponent('Dortmund ' + cleanTitle)}`;
-  }
-
-  // 4. Ruhr Nachrichten
-  if (url && url.includes('ruhrnachrichten.de/') && !url.endsWith('/bvb/')) {
-    return url;
-  }
-  if (pub.includes('ruhr')) {
-    return `https://www.ruhrnachrichten.de/bvb/`;
-  }
-
-  // 5. Official BVB.de
-  if (pub.includes('bvb') || (url && url.includes('bvb.de'))) {
-    if (url && url.includes('/news/') && !url.endsWith('news.html') && !url.endsWith('bvb.de/')) {
+  // 6. Kicker
+  if (pub.includes('kicker') || (url && url.includes('kicker.de'))) {
+    if (url && url.includes('kicker.de/') && !isGenericOverview(url) && (url.includes('/artikel') || url.includes('/spielbericht') || url.includes('/analyse'))) {
       return url;
     }
-    return 'https://www.bvb.de/de/de/aktuelles/news.html';
+    return `https://www.kicker.de/suche?query=${encodeURIComponent('Borussia Dortmund ' + cleanTitle)}`;
   }
 
-  // 6. Direct external URL (not an opaque tracking redirect)
-  if (url && url.startsWith('http') && !url.includes('news.google.com/rss/articles') && !url.includes('google.com/search') && !url.includes('bing.com/news')) {
+  // 7. Direct specific external URL
+  if (url && url.startsWith('http') && !isGenericOverview(url) && !url.includes('news.google.com/rss/articles')) {
     return url;
   }
 
-  // 7. Clean search query fallback (never using broken btnI=1 redirects)
-  return `https://www.google.com/search?q=${encodeURIComponent('Borussia Dortmund ' + cleanTitle)}`;
+  // 8. General targeted Google Search
+  return `https://www.google.com/search?q=${encodeURIComponent((source ? source + ' ' : '') + 'Borussia Dortmund ' + cleanTitle)}`;
 }
 
 export function normalizeArticleKey(title: string): string {

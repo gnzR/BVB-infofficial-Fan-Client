@@ -1,4 +1,4 @@
-# 🖤💛 BVB Inofficial Fan Client (Version: Beta 1.909.2)
+# 🖤💛 BVB Inofficial Fan Client (Version: Beta 1.909.3)
 
 > **100 % Kostenloses, ehrenamtliches Fanprojekt (Non-Profit)**  
 > Entwickelt von **w33derlich & Dobby** — erstellt und optimiert mithilfe von **Google Gemini**.  
@@ -20,26 +20,26 @@ Alle fertig gebauten Programme liegen im Ordner [`/releases`](./releases) bereit
 
 ---
 
-## 🆕 Was ist neu in Version 1.909.2 (Changelog & Release Notes)
+## 🆕 Was ist neu in Version 1.909.3 (Changelog & Release Notes)
 
-![Version](https://img.shields.io/badge/Version-Beta_1.909.2-FDE100?style=flat-square&labelColor=000000&logoColor=FDE100)
+![Version](https://img.shields.io/badge/Version-Beta_1.909.3-FDE100?style=flat-square&labelColor=000000&logoColor=FDE100)
 ![Plattformen](https://img.shields.io/badge/Plattformen-Windows_10%2F11_%7C_CachyOS_%7C_Android-10b981?style=flat-square&labelColor=000000)
 ![Security](https://img.shields.io/badge/Security_Audit-Gepr%C3%BCft_%26_Geh%C3%A4rtet-38bdf8?style=flat-square&labelColor=000000)
 
-### 🚀 Highlights & Fehlerbehebungen in Beta 1.909.2
+### 🚀 Highlights & Neuerungen in Beta 1.909.3
+- **🎯 Intelligenter Deeplink-Resolver (Lösung 2):**
+  - Generische Rubriken- und Startseiten-Links (`/news.html`, `/bvb/`, `/news` etc.) werden automatisch erkannt und abgefangen.
+  - Generiert für jeden Artikel einen herstellerspezifischen Direkt-Suchlink (z. B. Ruhr Nachrichten Artikelsuche, BVB.de-Archivsuche, Kicker-Artikelsuche, Transfermarkt-Schnellsuche), sodass Nutzer beim Klick auf *„Artikel in Standard-Browser öffnen“* immer gezielt beim konkreten Einzelartikel landen.
+  - Tracking- und RSS-Weiterleitungen (Bing/Google News Click-Tracker) werden vollautomatisch zur echten Zielquelle des Verlags entpackt.
 - **📰 News- & Archiv-Bestand verdreifacht (90+ kuratierte Artikel):**
   - Offline-Seed-Datenbank und Serverless-Fallback von ~30 auf **90 hochwertige, deduplizierte Artikel** aus allen 5 BVB-Medienquellen (*BVB.de, Transfermarkt, Kicker, Ruhr Nachrichten, BVBWLD.de*) erweitert.
-  - Automatischer Datenbank-Upgrade-Merger: Ältere lokale Datenbankbestände mit ~30 Artikeln werden beim ersten Start nahtlos und ohne Datenverlust auf das volle 90+-Archiv aufgestockt.
-- **⏱️ 15-Minuten API-Rate-Limit-Schutz & Cooldown:**
+- **⏱️ 15-Minuten API-Rate-Limit-Schutz & Auto-Sync-Statusleiste:**
   - Intelligenter Abrufschutz (`bvb_archive_last_sync_ts`) verhindert API-Spamming und schützt externe Nachrichtenschnittstellen vor Rate-Limits.
-  - Automatisches Caching von Zwischenabfragen in `IndexedDB` und `localStorage`.
-- **🐧 CachyOS / Arch Linux Launcher gehärtet (CORS-Befreiung):**
-  - Browser-Starter (`/usr/local/bin/bvb-desktop`) startet Chromium/Cachy-Browser jetzt mit `--allow-file-access-from-files --disable-web-security --user-data-dir="$HOME/.local/share/bvb-desktop/browser-profile"`.
-  - Verhindert jegliche `file://`-CORS-Blockaden in der Linux-Konsole bei lokalen HTML- und Standalone-Aufrufen.
+  - Live-Countdown und Statusanzeige im Reiter *News & Archiv* für den automatischen Hintergrund-Sync.
 
 ---
 
-## 📸 Programm-Vorschau (Echte Standalone-Ansicht • Beta 1.909.2)
+## 📸 Programm-Vorschau (Echte Standalone-Ansicht • Beta 1.909.3)
 
 ### 1. 🏆 Königsklasse & DFB-Pokal Live-Center (mit klickbarer Kader-Verknüpfung)
 ![Königsklasse & DFB-Pokal Live-Center](./docs/previews/01-koenigsklasse-pokal-live.png)
@@ -139,7 +139,7 @@ Viele klicken auf GitHub auf eine Datei und wundern sich, dass kein Download sta
 
 ---
 
-## ⚡ Hauptfunktionen (Beta 1.909.2)
+## ⚡ Hauptfunktionen (Beta 1.909.3)
 
 - **🔴 Hybrid Match-Ticker & Stadionwetter:**
   - Echtzeit-Spielstände, Statistiken (xG, Ballbesitz, Torschüsse) und deutscher Minuten-Ticker.

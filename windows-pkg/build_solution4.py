@@ -1333,12 +1333,12 @@ def build_serverless_html() -> str:
 
     if (url.indexOf("/version.json") === 0 || (url.indexOf("version.json") !== -1 && url.indexOf("githubusercontent.com") === -1)) {
       return makeJsonResponse({
-        version: "1.909.2",
-        versionCode: 19092,
+        version: "1.909.3",
+        versionCode: 19093,
         releasedAt: "2026-11-09",
         repositoryUrl: "https://github.com/gnzR/BVB-infofficial-Fan-Client",
         changelog: [
-          "Neu in 1.909.2: Integrierter GitHub-Updater im Info-Bereich (Live-Versionsprüfung & 1-Klick-Update)",
+          "Neu in 1.909.3: Integrierter GitHub-Updater im Info-Bereich (Live-Versionsprüfung & 1-Klick-Update)",
           "Neu: Fertige Android-APK (Absolute Beta) mit offiziellem BVB-09-Launcher-Icon & In-App-Vereinswappen",
           "Neu: Originalgetreuer 1:1 Signal Iduna Park Blockplan (Blöcke 1–89, alle 4 Eck-Kurven & Block-Suche)",
           "Security-Update (Paket B): DOM-XSS Schutz, Domain-Allowlist, Security-Header & Web-Audio Memory-Fix"
@@ -1421,8 +1421,8 @@ using System.Windows.Forms;
 [assembly: AssemblyCompany("BVB 09 Fan Community")]
 [assembly: AssemblyProduct("BVB Inofficial Fan Client")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 BVB 09 Client")]
-[assembly: AssemblyVersion("1.909.2.0")]
-[assembly: AssemblyFileVersion("1.909.2.0")]
+[assembly: AssemblyVersion("1.909.3.0")]
+[assembly: AssemblyFileVersion("1.909.3.0")]
 
 namespace BVB09Client
 {
@@ -1660,8 +1660,8 @@ using System.Drawing;
 [assembly: AssemblyCompany("BVB 09 Fan Community")]
 [assembly: AssemblyProduct("BVB Inofficial Fan Client")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 BVB 09 Client")]
-[assembly: AssemblyVersion("1.909.2.0")]
-[assembly: AssemblyFileVersion("1.909.2.0")]
+[assembly: AssemblyVersion("1.909.3.0")]
+[assembly: AssemblyFileVersion("1.909.3.0")]
 
 namespace BVB09Setup
 {
@@ -1912,7 +1912,7 @@ echo -e "${YELLOW}
  | |_) | |_| | |_) | | |_| |\\__, |
  |____/ \\___/|____/   \\___/   /_/ 
 ${NC}"
-echo -e "${YELLOW}[+] Starte BVB Inofficial Fan Client Beta 1.909.2 Installation auf CachyOS...${NC}\\n"
+echo -e "${YELLOW}[+] Starte BVB Inofficial Fan Client Beta 1.909.3 Installation auf CachyOS...${NC}\\n"
 
 echo -e "${BLUE}[1/4] Prüfe CachyOS / Arch System-Abhängigkeiten (Qt6 & Multimedia)...${NC}"
 DEPS=("python-pyqt6-webengine" "python-pyqt6" "libnotify" "pipewire" "pipewire-pulse" "alsa-utils" "gst-plugins-good" "gst-plugin-pipewire")
@@ -1935,7 +1935,7 @@ if [ ${#MISSING[@]} -ne 0 ]; then
     fi
 fi
 
-echo -e "${BLUE}[2/4] Installiere Anwendungsdateien (Offline-Desktop-Bundle Beta 1.909.2)...${NC}"
+echo -e "${BLUE}[2/4] Installiere Anwendungsdateien (Offline-Desktop-Bundle Beta 1.909.3)...${NC}"
 APP_DIR="$HOME/.local/share/bvb-desktop"
 mkdir -p "$APP_DIR"
 
@@ -1987,7 +1987,7 @@ sudo chmod +x /usr/local/bin/bvb-desktop
 echo -e "${BLUE}[4/4] Richte Desktop-Icon & Anwendungsmenü ein...${NC}"
 DESKTOP_ENTRY="[Desktop Entry]
 Name=BVB 09 Transfermarkt Client
-Comment=Borussia Dortmund 09 Desktop Client Beta 1.909.2 (Niko Kovac Edition)
+Comment=Borussia Dortmund 09 Desktop Client Beta 1.909.3 (Niko Kovac Edition)
 Exec=/usr/local/bin/bvb-desktop
 Icon=bvb-logo
 Terminal=false
@@ -2005,7 +2005,7 @@ fi
 
 update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
 
-echo -e "\\n${GREEN}[✓] BVB 09 Client Beta 1.909.2 ERFOLGREICH auf CachyOS installiert!${NC}"
+echo -e "\\n${GREEN}[✓] BVB 09 Client Beta 1.909.3 ERFOLGREICH auf CachyOS installiert!${NC}"
 echo -e "${YELLOW}[+] Starten: im Terminal mit 'bvb-desktop' oder über dein Anwendungsmenü.${NC}\\n"
 """
 
@@ -2058,7 +2058,7 @@ app = QApplication(sys.argv)
 app.setApplicationName("BVB Inofficial Fan Client")
 
 window = QMainWindow()
-window.setWindowTitle("BVB Inofficial Fan Client · Beta 1.909.2 (CachyOS Desktop App)")
+window.setWindowTitle("BVB Inofficial Fan Client · Beta 1.909.3 (CachyOS Desktop App)")
 window.resize(1440, 920)
 window.setStyleSheet("background-color: #07080a;")
 
@@ -2101,10 +2101,10 @@ sys.exit(app.exec())
 """
 
     readme_cachy = """===================================================================
- BORUSSIA DORTMUND 09 DESKTOP CLIENT Beta 1.909.2 FOR CACHYOS / ARCH
+ BORUSSIA DORTMUND 09 DESKTOP CLIENT Beta 1.909.3 FOR CACHYOS / ARCH
 ===================================================================
 
-NEU IN VERSION Beta 1.909.2:
+NEU IN VERSION Beta 1.909.3:
   - Zweizeilige Profi-Desktop-Navigation (inkl. 30 Tage Statistik)
   - Geprüftes Netradio inkl. Radio Euskirchen (192 kbps MP3) & Radio 91.2 Dortmund
   - Idee 1: Interaktive BVB-Taktiktafel & Wunsch-Startelf-Planer (Niko Kovac)

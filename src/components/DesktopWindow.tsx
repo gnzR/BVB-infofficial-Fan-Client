@@ -246,7 +246,7 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
                   </div>
                   <div className="text-[10px] font-mono text-slate-400 flex items-center gap-1 mt-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span>Android · Beta 1.909.2</span>
+                    <span>Android · Beta 1.909.3</span>
                   </div>
                 </div>
               </button>
@@ -594,7 +594,7 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
           <span className="text-slate-600">|</span>
           <span className="font-bvb font-bold text-slate-200 tracking-wide text-sm flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#FDE100] shadow-[0_0_8px_#FDE100]" />
-            BVB Inofficial Fan Client · <span className="text-[#FDE100] font-mono text-xs">Beta 1.909.2</span>
+            BVB Inofficial Fan Client · <span className="text-[#FDE100] font-mono text-xs">Beta 1.909.3</span>
           </span>
         </div>
 
@@ -788,7 +788,7 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
             <OfficialBvbLogo className="w-9 h-9 shrink-0 drop-shadow-[0_0_8px_rgba(253,225,0,0.35)]" />
             <span>BVB INOFFICIAL FAN CLIENT</span>
             <span className="px-2 py-0.5 rounded bg-[#FDE100]/15 border border-[#FDE100]/40 text-[#FDE100] font-mono text-[10px] font-bold tracking-normal">
-              Beta 1.909.2
+              Beta 1.909.3
             </span>
           </a>
 
@@ -1093,7 +1093,7 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
         ) : (
           <div className="flex items-center gap-3">
             <div className="text-[11px] font-bvb text-slate-400 tracking-wider uppercase">
-              BVB Inofficial Fan Client · Beta 1.909.2 · Echte Liebe 09
+              BVB Inofficial Fan Client · Beta 1.909.3 · Echte Liebe 09
             </div>
             {!isTrueStandaloneApp && (
               <button
