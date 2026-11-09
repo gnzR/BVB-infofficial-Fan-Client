@@ -1,4 +1,4 @@
-# 🖤💛 BVB Inofficial Fan Client (Version: Beta 1.9.0.9)
+# 🖤💛 BVB Inofficial Fan Client (Version: Beta 1.909.1)
 
 > **100 % Kostenloses, ehrenamtliches Fanprojekt (Non-Profit)**  
 > Entwickelt von **w33derlich & Dobby** — erstellt und optimiert mithilfe von **Google Gemini**.  
@@ -20,13 +20,16 @@ Alle fertig gebauten Programme liegen im Ordner [`/releases`](./releases) bereit
 
 ---
 
-## 🆕 Was ist neu in Version 1.9.0.9 (Changelog & Release Notes)
+## 🆕 Was ist neu in Version 1.909.1 (Changelog & Release Notes)
 
-![Version](https://img.shields.io/badge/Version-Beta_1.9.0.9-FDE100?style=flat-square&labelColor=000000&logoColor=FDE100)
+![Version](https://img.shields.io/badge/Version-Beta_1.909.1-FDE100?style=flat-square&labelColor=000000&logoColor=FDE100)
 ![Plattformen](https://img.shields.io/badge/Plattformen-Windows_10%2F11_%7C_CachyOS_%7C_Android-10b981?style=flat-square&labelColor=000000)
 ![Security](https://img.shields.io/badge/Security_Audit-Gepr%C3%BCft_%26_Geh%C3%A4rtet-38bdf8?style=flat-square&labelColor=000000)
 
 ### 🚀 Neue Features & Live-Module
+- **🔄 Integrierter GitHub Auto-Updater im „Info“-Bereich (`gnzR/BVB-infofficial-Fan-Client`):**
+  - Automatische & manuelle Live-Versionsprüfung direkt gegen [`version.json`](./version.json) auf GitHub inkl. Anzeige des neuesten GitHub-Commits und Änderungsprotokolls.
+  - 1-Klick-Update-Download mit Echtzeit-Fortschrittsbalken für **Windows 10/11 (`.exe` & `.zip`)**, **CachyOS / Linux (`.tar.gz`)** und **Android (`.apk`)**.
 - **📅 Spieltags-Zentrale & 1-Klick `.ics` Kalender-Export**:
   - Live-Spielplan aller kommenden BVB-Pflichtspiele (*Bundesliga, UEFA Champions League, DFB-Pokal*) via OpenLigaDB inkl. sekundengenauem Anpfiff-Countdown.
   - 1-Klick `.ics`-Kalender-Export für Einzelspiele oder den gesamten Spielplan inkl. automatischer 30-Minuten-Erinnerung (`VALARM`).
@@ -52,7 +55,7 @@ Alle fertig gebauten Programme liegen im Ordner [`/releases`](./releases) bereit
 
 ---
 
-## 📸 Programm-Vorschau (Echte Standalone-Ansicht • Beta 1.9.0.9)
+## 📸 Programm-Vorschau (Echte Standalone-Ansicht • Beta 1.909.1)
 
 ### 1. 🏆 Königsklasse & DFB-Pokal Live-Center (mit klickbarer Kader-Verknüpfung)
 ![Königsklasse & DFB-Pokal Live-Center](./docs/previews/01-koenigsklasse-pokal-live.png)
@@ -152,7 +155,7 @@ Viele klicken auf GitHub auf eine Datei und wundern sich, dass kein Download sta
 
 ---
 
-## ⚡ Hauptfunktionen (Beta 1.9.0.9)
+## ⚡ Hauptfunktionen (Beta 1.909.1)
 
 - **🔴 Hybrid Match-Ticker & Stadionwetter:**
   - Echtzeit-Spielstände, Statistiken (xG, Ballbesitz, Torschüsse) und deutscher Minuten-Ticker.

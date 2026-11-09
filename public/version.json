@@ -1,0 +1,19 @@
+{
+  "version": "1.909.1",
+  "versionCode": 19091,
+  "releasedAt": "2026-11-09",
+  "repositoryUrl": "https://github.com/gnzR/BVB-infofficial-Fan-Client",
+  "changelog": [
+    "Neu in 1.909.1: Integrierter GitHub-Updater im Info-Bereich (Live-Versionsprüfung & 1-Klick-Update)",
+    "Neu: Fertige Android-APK (Absolute Beta) mit offiziellem BVB-09-Launcher-Icon & In-App-Vereinswappen",
+    "Neu: Originalgetreuer 1:1 Signal Iduna Park Blockplan (Blöcke 1–89, alle 4 Eck-Kurven & Block-Suche)",
+    "Neu: Spieltags-Zentrale mit 1-Klick .ics Kalender-Export, Tor-Alarm mit Stadion-Torhymne & Gegner-Scouting",
+    "Security-Update (Paket B): DOM-XSS Schutz, Domain-Allowlist, Security-Header & Web-Audio Memory-Fix"
+  ],
+  "downloads": {
+    "windowsPortableZip": "https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Windows-Portable.zip",
+    "windowsSetupExe": "https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Windows-Setup.exe",
+    "cachyosTarGz": "https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/bvb-09-cachyos-package.tar.gz",
+    "androidApk": "https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Android-Client.apk"
+  }
+}

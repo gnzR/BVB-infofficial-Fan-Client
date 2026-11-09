@@ -1864,6 +1864,8 @@ const ALLOWED_EXTERNAL_HOSTS = [
   'dfb.de',
   'bundesliga.com',
   'sportbild.bild.de',
+  'github.com',
+  'raw.githubusercontent.com',
 ];
 
 app.all('/api/open-external', (req, res) => {
