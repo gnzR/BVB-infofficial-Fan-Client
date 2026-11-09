@@ -539,13 +539,30 @@ export function downloadWindowsUninstaller() {
 }
 
 export function downloadAndroidApk() {
-  const serverEndpoint = '/api/download/BVB-09-Android-Client.apk';
-  const a = document.createElement('a');
-  a.href = serverEndpoint;
-  a.download = 'BVB-09-Android-Client.apk';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  const directUrl = typeof window !== 'undefined' && window.location.protocol === 'file:'
+    ? 'https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Android-Client.apk'
+    : '/api/download/BVB-09-Android-Client.apk';
+  const fullRemoteUrl = 'https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Android-Client.apk';
+  const intentUrl = `intent://${fullRemoteUrl.replace(/^https?:\/\//, '')}#Intent;action=android.intent.action.VIEW;type=application/vnd.android.package-archive;end`;
+
+  // 1. Immediately launch Android Package Installer Dialog via Intent URI scheme
+  try {
+    window.location.href = intentUrl;
+  } catch {
+    window.location.href = directUrl;
+  }
+
+  // 2. Fallback direct download link
+  setTimeout(() => {
+    try {
+      const a = document.createElement('a');
+      a.href = directUrl;
+      a.download = 'BVB-09-Android-Client.apk';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch {}
+  }, 1000);
 }
 
 export const CACHYOS_INSTALLER_SCRIPT = `#!/usr/bin/env bash

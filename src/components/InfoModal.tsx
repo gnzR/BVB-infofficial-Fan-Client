@@ -104,6 +104,7 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
   const [isDownloadingUpdate, setIsDownloadingUpdate] = useState<boolean>(false);
   const [downloadProgressPct, setDownloadProgressPct] = useState<number>(0);
   const [downloadStatusText, setDownloadStatusText] = useState<string>('');
+  const [androidPendingApkIntent, setAndroidPendingApkIntent] = useState<string | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<DetectedPlatform>(() => detectUserPlatform());
 
   const checkForGitHubUpdates = useCallback(async () => {
@@ -205,6 +206,12 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
 
   // Fully Automated 1-Click Update: Download Bundle -> In-Place Store -> Immediate App Reload
   const handleAutoUpdateInstallAndReload = async () => {
+    // On Android, seamlessly route to the automated native Package Installer flow!
+    if (selectedPlatform === 'android' || (typeof window !== 'undefined' && /Android/i.test(navigator.userAgent || ''))) {
+      handleAutoDownloadAndInstall('android');
+      return;
+    }
+
     if (isAutoUpdatingInPlace) return;
     setIsAutoUpdatingInPlace(true);
     setAutoUpdateProgressPct(10);
@@ -392,8 +399,20 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
 
       setDownloadProgressPct(100);
       if (targetPlatform === 'android') {
+        const apkUrl = githubRawUrl || 'https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Android-Client.apk';
+        const cleanPath = apkUrl.replace(/^https?:\/\//, '');
+        const intentUrl = `intent://${cleanPath}#Intent;action=android.intent.action.VIEW;type=application/vnd.android.package-archive;end`;
+        setAndroidPendingApkIntent(intentUrl);
+
+        // Immediately launch Android System Package Installer
+        try {
+          window.location.href = intentUrl;
+        } catch {
+          window.location.href = apkUrl;
+        }
+
         setDownloadStatusText(
-          `✅ ${fileName} erfolgreich geladen! Öffne die Datei in deiner Benachrichtigungsleiste und tippe auf „Aktualisieren“.`
+          `📲 ${fileName} geladen! Android-Installationsdialog wird geöffnet – bitte tippe im Systemfenster auf „Installieren“!`
         );
       } else if (targetPlatform === 'linux') {
         setDownloadStatusText(
@@ -414,6 +433,16 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
   };
 
   function triggerBrowserFileDownload(blob: Blob, filename: string, mimeType: string) {
+    if (filename.endsWith('.apk') || mimeType === 'application/vnd.android.package-archive') {
+      const directApkUrl = 'https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Android-Client.apk';
+      const cleanPath = directApkUrl.replace(/^https?:\/\//, '');
+      const intentUrl = `intent://${cleanPath}#Intent;action=android.intent.action.VIEW;type=application/vnd.android.package-archive;end`;
+      try {
+        window.location.href = intentUrl;
+      } catch {
+        window.location.href = directApkUrl;
+      }
+    }
     const typedBlob = new Blob([blob], { type: mimeType });
     const url = URL.createObjectURL(typedBlob);
     const a = document.createElement('a');
@@ -766,6 +795,33 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
                   <div className="text-[11px] font-mono text-[#FDE100] flex items-center justify-between gap-2">
                     <span>{downloadStatusText}</span>
                     {isDownloadingUpdate && <span className="font-bold">{downloadProgressPct}%</span>}
+                  </div>
+                </div>
+              )}
+
+              {/* Android Automatic Installation Banner & Quick-Trigger */}
+              {androidPendingApkIntent && (
+                <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950 via-slate-900 to-black border-2 border-emerald-400 text-white space-y-2.5 shadow-xl mt-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[#FDE100] font-bvb font-bold text-sm uppercase">
+                      <Smartphone className="w-5 h-5 text-emerald-400" />
+                      <span>Android Paket-Manager gestartet!</span>
+                    </div>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-mono px-2 py-0.5 rounded border border-emerald-500/30">
+                      System-Installationsdialog
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-200">
+                    Das Update wurde an dein Android-System übergeben. Bitte tippe jetzt im aufpoppenden Systemdialog auf <strong>„Installieren“</strong> (bzw. <strong>„Aktualisieren“</strong>)!
+                  </p>
+                  <div className="pt-1 flex flex-wrap gap-2">
+                    <a
+                      href={androidPendingApkIntent}
+                      className="px-4 py-2 bg-[#FDE100] text-black font-bvb font-black text-xs uppercase rounded-lg shadow-lg flex items-center gap-2 cursor-pointer hover:bg-[#ffe733]"
+                    >
+                      <Sparkles className="w-4 h-4 text-black" />
+                      <span>Installations-Fenster jetzt aufrufen</span>
+                    </a>
                   </div>
                 </div>
               )}

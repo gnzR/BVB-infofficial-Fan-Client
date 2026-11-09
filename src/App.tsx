@@ -15,9 +15,32 @@ import { BvbChantStudioTab } from './components/tabs/BvbChantStudioTab';
 import { MatchdayHubTab } from './components/tabs/MatchdayHubTab';
 import { InstallerGeneratorModal } from './components/InstallerGeneratorModal';
 import { SchalkerEasterEggModal } from './components/SchalkerEasterEggModal';
+import { StartupUpdateModal, StartupRemoteVersionPayload } from './components/StartupUpdateModal';
+import { CURRENT_APP_VERSION } from './components/InfoModal';
 import { getUserProfile, UserBVBProfile } from './utils/userProfile';
 import { getNotificationArchive } from './utils/notificationSystem';
 import { sync60DayBvbArchive } from './utils/bvbArchiveStore';
+
+function parseVerParts(v: string): number[] {
+  return v
+    .replace(/[^0-9.]/g, '')
+    .split('.')
+    .filter(Boolean)
+    .map((n) => parseInt(n, 10) || 0);
+}
+
+function compareVersions(remoteVer: string, localVer: string): number {
+  const r = parseVerParts(remoteVer);
+  const l = parseVerParts(localVer);
+  const maxLen = Math.max(r.length, l.length);
+  for (let i = 0; i < maxLen; i++) {
+    const rv = r[i] || 0;
+    const lv = l[i] || 0;
+    if (rv > lv) return 1;
+    if (rv < lv) return -1;
+  }
+  return 0;
+}
 
 export default function App() {
   const isInstalledClient = (() => {
@@ -47,6 +70,11 @@ export default function App() {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [justUpdatedNotice, setJustUpdatedNotice] = useState<string | null>(null);
 
+  // Option 1: Startup GitHub Update Checker Modal State (for Windows, Linux & Android)
+  const [startupRemoteUpdate, setStartupRemoteUpdate] = useState<StartupRemoteVersionPayload | null>(null);
+  const [isStartupUpdateModalOpen, setIsStartupUpdateModalOpen] = useState<boolean>(false);
+  const [startupUpdateDismissed, setStartupUpdateDismissed] = useState<boolean>(false);
+
   useEffect(() => {
     try {
       const notice = localStorage.getItem('bvb_just_updated_notice');
@@ -59,6 +87,51 @@ export default function App() {
       // ignore
     }
   }, []);
+
+  // Option 1: Silent Background GitHub Version Check on App Startup
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function checkGitHubOnStartup() {
+      const cacheBust = `?t=${Date.now()}`;
+      const candidateUrls = [
+        `https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/version.json${cacheBust}`,
+        `https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/master/version.json${cacheBust}`,
+      ];
+
+      for (const url of candidateUrls) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 4500);
+          const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (res.ok) {
+            const data: StartupRemoteVersionPayload = await res.json();
+            if (!isCancelled && data && typeof data.version === 'string') {
+              if (compareVersions(data.version, CURRENT_APP_VERSION) > 0) {
+                setStartupRemoteUpdate(data);
+              }
+              return;
+            }
+          }
+        } catch {
+          // Try next or ignore if offline
+        }
+      }
+    }
+
+    checkGitHubOnStartup();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  // Automatically open the Option 1 Startup Update Modal as soon as the 3D Splash finishes
+  useEffect(() => {
+    if (!showSplash && startupRemoteUpdate && !startupUpdateDismissed) {
+      setIsStartupUpdateModalOpen(true);
+    }
+  }, [showSplash, startupRemoteUpdate, startupUpdateDismissed]);
 
   useEffect(() => {
     const archive = getNotificationArchive();
@@ -127,7 +200,24 @@ export default function App() {
   return (
     <>
       {/* 3D Spinning BVB Emblem Splash Screen */}
-      {showSplash && <Splash3D onComplete={handleSplashComplete} />}
+      {showSplash && (
+        <Splash3D
+          onComplete={handleSplashComplete}
+          onDetectedUpdate={(remoteData) => {
+            setStartupRemoteUpdate(remoteData);
+          }}
+        />
+      )}
+
+      {/* Option 1: Dedicated Startup Update Modal right after Splash Screen (Windows, Linux & Android) */}
+      <StartupUpdateModal
+        isOpen={isStartupUpdateModalOpen}
+        remoteInfo={startupRemoteUpdate}
+        onClose={() => {
+          setIsStartupUpdateModalOpen(false);
+          setStartupUpdateDismissed(true);
+        }}
+      />
 
       {/* Desktop Wrapper Window */}
       <DesktopWindow
@@ -201,3 +291,4 @@ export default function App() {
     </>
   );
 }
+

@@ -3,13 +3,40 @@ import { Database, HardDrive, CheckCircle2, ArrowDownToLine } from 'lucide-react
 import { sync30DayBvbArchive } from '../utils/bvbArchiveStore';
 import { syncLiveBvbSquad } from '../utils/squadStore';
 import { OfficialBvbLogo } from './OfficialBvbLogo';
+import { CURRENT_APP_VERSION } from './InfoModal';
+import { StartupRemoteVersionPayload } from './StartupUpdateModal';
 
 interface SplashProps {
   onComplete: () => void;
+  onDetectedUpdate?: (remoteData: StartupRemoteVersionPayload) => void;
   standalone?: boolean;
 }
 
-export const Splash3D: React.FC<SplashProps> = ({ onComplete }) => {
+const GITHUB_REPO_OWNER = 'gnzR';
+const GITHUB_REPO_NAME = 'BVB-infofficial-Fan-Client';
+
+function parseVerParts(v: string): number[] {
+  return v
+    .replace(/[^0-9.]/g, '')
+    .split('.')
+    .filter(Boolean)
+    .map((n) => parseInt(n, 10) || 0);
+}
+
+function compareVer(remoteVer: string, localVer: string): number {
+  const r = parseVerParts(remoteVer);
+  const l = parseVerParts(localVer);
+  const maxLen = Math.max(r.length, l.length);
+  for (let i = 0; i < maxLen; i++) {
+    const rv = r[i] || 0;
+    const lv = l[i] || 0;
+    if (rv > lv) return 1;
+    if (rv < lv) return -1;
+  }
+  return 0;
+}
+
+export const Splash3D: React.FC<SplashProps> = ({ onComplete, onDetectedUpdate }) => {
   const [progress, setProgress] = useState<number>(0);
   const [currentStep, setCurrentStep] = useState<string>('Initiere BVB Live-Datenbank Synchronisation...');
   const [transferredMb, setTransferredMb] = useState<string>('0.0');
@@ -39,10 +66,10 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete }) => {
 
     async function runSync() {
       try {
-        // Step 1: Sync BVB News Archive
+        // Step 1: Sync BVB News Archive (0% -> 45%)
         const syncRes = await sync30DayBvbArchive((pct, step) => {
           if (!isCancelled) {
-            const mappedPct = Math.round((pct / 100) * 50);
+            const mappedPct = Math.round((pct / 100) * 45);
             setProgress(mappedPct);
             setCurrentStep(step);
             setTransferredMb(((mappedPct / 100) * 4.8).toFixed(1));
@@ -50,16 +77,49 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete }) => {
         });
         const articlesList = Array.isArray(syncRes) ? syncRes : syncRes?.articles || [];
 
-        // Step 2: Live Sync BVB Squad Roster (ESPN & Transfermarkt)
+        // Step 2: Live Sync BVB Squad Roster (45% -> 80%)
         if (!isCancelled) {
           await syncLiveBvbSquad((pct, step) => {
             if (!isCancelled) {
-              const mappedPct = 50 + Math.round((pct / 100) * 50);
+              const mappedPct = 45 + Math.round((pct / 100) * 35);
               setProgress(mappedPct);
               setCurrentStep(step);
               setTransferredMb(((mappedPct / 100) * 4.8).toFixed(1));
             }
           });
+        }
+
+        // Step 3: Silent Background GitHub Update Check during Splash (80% -> 95%)
+        if (!isCancelled) {
+          setProgress(88);
+          setCurrentStep('Prüfe im Hintergrund auf neue GitHub-Version...');
+          setTransferredMb('4.4');
+
+          const cacheBust = `?t=${Date.now()}`;
+          const candidateUrls = [
+            `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/version.json${cacheBust}`,
+            `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/master/version.json${cacheBust}`,
+          ];
+
+          for (const url of candidateUrls) {
+            try {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 2400);
+              const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+              clearTimeout(timeoutId);
+              if (res.ok) {
+                const data: StartupRemoteVersionPayload = await res.json();
+                if (!isCancelled && data && typeof data.version === 'string') {
+                  if (compareVer(data.version, CURRENT_APP_VERSION) > 0 && onDetectedUpdate) {
+                    onDetectedUpdate(data);
+                  }
+                  break;
+                }
+              }
+            } catch {
+              // Offline or timeout -> continue startup smoothly
+            }
+          }
         }
 
         if (!isCancelled) {
@@ -90,7 +150,7 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete }) => {
     return () => {
       isCancelled = true;
     };
-  }, [onComplete]);
+  }, [onComplete, onDetectedUpdate]);
 
   return (
     <div
@@ -156,7 +216,7 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete }) => {
             BVB Inofficial Fan Client
           </span>
           <span className="px-2 py-0.5 rounded bg-[#FDE100] text-black font-mono font-extrabold text-[11px] shadow-md shadow-[#FDE100]/20">
-            Beta 1.909.3
+            Beta {CURRENT_APP_VERSION}
           </span>
         </div>
       </div>
@@ -174,7 +234,7 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete }) => {
                 <span>Interne Datenbank-Synchronisation</span>
               </h2>
               <p className="text-xs text-slate-400">
-                BVB Inofficial Fan Client · <span className="text-[#FDE100] font-mono">Beta 1.909.3</span>
+                BVB Inofficial Fan Client · <span className="text-[#FDE100] font-mono">Beta {CURRENT_APP_VERSION}</span>
               </p>
             </div>
           </div>
@@ -197,9 +257,7 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete }) => {
             </span>
           </div>
 
-          <div className="text-xs font-mono text-[#FDE100] truncate">
-            {currentStep}
-          </div>
+          <div className="text-xs font-mono text-[#FDE100] truncate">{currentStep}</div>
 
           {/* Download Progress Bar */}
           <div className="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-800 mt-2 p-0.5">
@@ -226,8 +284,8 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete }) => {
             <span>Königsklasse & Pokal Live-API</span>
           </div>
           <div className="flex items-center gap-1.5 p-2 rounded bg-slate-900/50 border border-slate-800">
-            <CheckCircle2 className={`w-3.5 h-3.5 ${progress >= 75 ? 'text-emerald-400' : 'text-slate-600'}`} />
-            <span>BVB Live-Kader (ESPN API)</span>
+            <CheckCircle2 className={`w-3.5 h-3.5 ${progress >= 80 ? 'text-emerald-400' : 'text-slate-600'}`} />
+            <span>GitHub Auto-Update Check</span>
           </div>
           <div className="flex items-center gap-1.5 p-2 rounded bg-slate-900/50 border border-slate-800">
             <CheckCircle2 className={`w-3.5 h-3.5 ${progress >= 100 ? 'text-emerald-400' : 'text-slate-600'}`} />
@@ -249,3 +307,5 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete }) => {
     </div>
   );
 };
+
+

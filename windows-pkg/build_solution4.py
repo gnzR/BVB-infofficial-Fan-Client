@@ -2151,6 +2151,260 @@ DEINSTALLATION:
     print(f"    -> bvb-09-cachyos-package.tar.gz erstellt ({os.path.getsize(tar_gz_path) // 1024} KB)")
 
 
+def build_android_apk():
+    print("[6/6] Baue & signiere aktuelle Android-APK (BVB-09-Android-Client.apk v1.909.3)...")
+    import hashlib
+    import struct
+    import tempfile
+
+    base_apk = os.path.join(RELEASES_DIR, "BVB-09-Android-Client.apk")
+    if not os.path.exists(base_apk):
+        base_apk = os.path.join(ROOT_DIR, "android-pkg", "BVB-09-Android-Client.apk")
+    if not os.path.exists(base_apk):
+        print("    [!] Basis-APK nicht gefunden, überspringe APK-Build.")
+        return
+
+    serverless_html = os.path.join(WIN_PKG_DIR, "BVB09-App.html")
+    with open(serverless_html, "r", encoding="utf-8") as f:
+        android_html = f.read()
+
+    # Ensure window.__BVB_ANDROID_APP__ = true is set in the Android WebView bundle
+    android_html = android_html.replace(
+        "window.__BVB_STANDALONE_APP__ = true;",
+        "window.__BVB_STANDALONE_APP__ = true;\n  window.__BVB_ANDROID_APP__ = true;"
+    )
+    android_html_bytes = android_html.encode("utf-8")
+
+    with zipfile.ZipFile(base_apk, "r") as zin:
+        manifest_bin = bytearray(zin.read("AndroidManifest.xml"))
+        classes_dex = zin.read("classes.dex")
+        icon_png = zin.read("res/drawable/icon.png")
+        resources_arsc = zin.read("resources.arsc")
+        chants = {}
+        for name in zin.namelist():
+            if name.startswith("assets/audio/"):
+                chants[name] = zin.read(name)
+
+    # Patch binary AndroidManifest.xml versionName ("1.909.1" -> "1.909.3") and versionCode (19091 -> 19093)
+    for old_ver in ["1.909.1", "1.909.2"]:
+        old_u16 = old_ver.encode("utf-16le")
+        new_u16 = "1.909.3".encode("utf-16le")
+        if old_u16 in manifest_bin:
+            manifest_bin = manifest_bin.replace(old_u16, new_u16)
+
+    for old_code in [19091, 19092]:
+        old_c = struct.pack("<I", old_code)
+        new_c = struct.pack("<I", 19093)
+        if old_c in manifest_bin:
+            manifest_bin = manifest_bin.replace(old_c, new_c, 1)
+
+    manifest_bytes = bytes(manifest_bin)
+
+    # Generate RSA-2048 signing key and self-signed certificate via OpenSSL
+    tmp_dir = tempfile.mkdtemp(prefix="bvb_apk_sign_")
+    key_pem = os.path.join(tmp_dir, "key.pem")
+    cert_pem = os.path.join(tmp_dir, "cert.pem")
+    cert_der = os.path.join(tmp_dir, "cert.der")
+    pubkey_der = os.path.join(tmp_dir, "pubkey.der")
+
+    subprocess.run(
+        [
+            "openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes",
+            "-keyout", key_pem, "-out", cert_pem, "-days", "10000",
+            "-subj", "/C=DE/O=BVB09 Fanprojekt/OU=w33derlich and Dobby/CN=BVB Inofficial Fan Client"
+        ],
+        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+    subprocess.run(
+        ["openssl", "x509", "-in", cert_pem, "-outform", "DER", "-out", cert_der],
+        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+    subprocess.run(
+        ["openssl", "rsa", "-in", key_pem, "-pubout", "-outform", "DER", "-out", pubkey_der],
+        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+
+    with open(cert_der, "rb") as f:
+        cert_der_bytes = f.read()
+    with open(pubkey_der, "rb") as f:
+        pubkey_der_bytes = f.read()
+
+    entries = [
+        ("AndroidManifest.xml", manifest_bytes, zipfile.ZIP_DEFLATED),
+        ("classes.dex", classes_dex, zipfile.ZIP_DEFLATED),
+        ("res/drawable/icon.png", icon_png, zipfile.ZIP_STORED),
+        ("resources.arsc", resources_arsc, zipfile.ZIP_STORED),
+        ("assets/index.html", android_html_bytes, zipfile.ZIP_DEFLATED),
+    ]
+    for k in sorted(chants.keys()):
+        entries.append((k, chants[k], zipfile.ZIP_STORED))
+
+    # Build v1 JAR Signature (META-INF/MANIFEST.MF, CERT.SF, CERT.RSA)
+    mf_lines = [
+        "Manifest-Version: 1.0",
+        "Created-By: 1.0 (BVB 09 Direct Android Builder)",
+        ""
+    ]
+    sf_blocks = []
+    for name, content, _ in entries:
+        digest_b64 = base64.b64encode(hashlib.sha256(content).digest()).decode("ascii")
+        block = f"Name: {name}\r\nSHA-256-Digest: {digest_b64}\r\n\r\n"
+        mf_lines.append(block.rstrip("\r\n"))
+        mf_lines.append("")
+        sf_digest_b64 = base64.b64encode(hashlib.sha256(block.encode("utf-8")).digest()).decode("ascii")
+        sf_blocks.append(f"Name: {name}\r\nSHA-256-Digest: {sf_digest_b64}\r\n\r\n")
+
+    mf_bytes = ("\r\n".join(mf_lines)).encode("utf-8")
+    mf_hash_b64 = base64.b64encode(hashlib.sha256(mf_bytes).digest()).decode("ascii")
+
+    sf_header = (
+        "Signature-Version: 1.0\r\n"
+        "Created-By: 1.0 (BVB 09 Direct Android Builder)\r\n"
+        f"SHA-256-Digest-Manifest: {mf_hash_b64}\r\n"
+        "X-Android-APK-Signed: 2\r\n\r\n"
+    )
+    sf_bytes = (sf_header + "".join(sf_blocks)).encode("utf-8")
+
+    sf_path = os.path.join(tmp_dir, "CERT.SF")
+    rsa_path = os.path.join(tmp_dir, "CERT.RSA")
+    with open(sf_path, "wb") as f:
+        f.write(sf_bytes)
+
+    subprocess.run(
+        [
+            "openssl", "cms", "-sign", "-binary", "-noattr",
+            "-in", sf_path, "-signer", cert_pem, "-inkey", key_pem,
+            "-outform", "DER", "-out", rsa_path, "-md", "sha256"
+        ],
+        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+    with open(rsa_path, "rb") as f:
+        rsa_bytes = f.read()
+
+    entries.append(("META-INF/MANIFEST.MF", mf_bytes, zipfile.ZIP_DEFLATED))
+    entries.append(("META-INF/CERT.SF", sf_bytes, zipfile.ZIP_DEFLATED))
+    entries.append(("META-INF/CERT.RSA", rsa_bytes, zipfile.ZIP_DEFLATED))
+
+    # Write unsigned/v1-signed ZIP with 4-byte alignment for stored entries
+    unsigned_zip = os.path.join(tmp_dir, "unsigned.apk")
+    with zipfile.ZipFile(unsigned_zip, "w") as zout:
+        for name, content, comp_type in entries:
+            zi = zipfile.ZipInfo(name, date_time=(2026, 11, 9, 23, 0, 0))
+            zi.compress_type = comp_type
+            zi.external_attr = 0o644 << 16
+            if comp_type == zipfile.ZIP_STORED:
+                # 4-byte zipalign padding in extra field
+                current_offset = zout.fp.tell()
+                header_len = 30 + len(name.encode("utf-8"))
+                pad = (4 - ((current_offset + header_len) % 4)) % 4
+                if pad > 0:
+                    zi.extra = b"\x00" * pad
+            zout.writestr(zi, content)
+
+    with open(unsigned_zip, "rb") as f:
+        raw_apk = f.read()
+
+    eocd_pos = raw_apk.rfind(b"PK\x05\x06")
+    cd_offset = struct.unpack("<I", raw_apk[eocd_pos + 16:eocd_pos + 20])[0]
+
+    sec1 = raw_apk[:cd_offset]
+    sec3 = raw_apk[cd_offset:eocd_pos]
+    sec4_for_hash = bytearray(raw_apk[eocd_pos:])
+    struct.pack_into("<I", sec4_for_hash, 16, cd_offset)
+
+    def calc_chunk_digests(buf: bytes):
+        out = []
+        CHUNK_SIZE = 1024 * 1024
+        for i in range(0, len(buf), CHUNK_SIZE):
+            chunk = buf[i:i + CHUNK_SIZE]
+            h = hashlib.sha256()
+            h.update(b"\xa5")
+            h.update(struct.pack("<I", len(chunk)))
+            h.update(chunk)
+            out.append(h.digest())
+        return out
+
+    all_digests = calc_chunk_digests(sec1) + calc_chunk_digests(sec3) + calc_chunk_digests(bytes(sec4_for_hash))
+    top_hash = hashlib.sha256()
+    top_hash.update(b"\x5a")
+    top_hash.update(struct.pack("<I", len(all_digests)))
+    for d in all_digests:
+        top_hash.update(d)
+    v2_top_digest = top_hash.digest()
+
+    # Build APK Signature Scheme v2 signed_data (algorithm 0x0103 = RSA PKCS#1 v1.5 with SHA-256)
+    algo_id = 0x0103
+    digest_entry = struct.pack("<I", algo_id) + struct.pack("<I", len(v2_top_digest)) + v2_top_digest
+    digests_seq = struct.pack("<I", len(digest_entry)) + digest_entry
+    certs_seq = struct.pack("<I", len(cert_der_bytes)) + cert_der_bytes
+    additional_attrs = b""
+    signed_data = (
+        struct.pack("<I", len(digests_seq)) + digests_seq +
+        struct.pack("<I", len(certs_seq)) + certs_seq +
+        struct.pack("<I", len(additional_attrs)) + additional_attrs +
+        struct.pack("<I", 0)  # optional extra uint32 empty
+    )
+    # Note: standard v2 signed_data has 3 length-prefixed fields: digests, certificates, additional_attributes
+    signed_data = (
+        struct.pack("<I", len(digests_seq)) + digests_seq +
+        struct.pack("<I", len(certs_seq)) + certs_seq +
+        struct.pack("<I", len(additional_attrs)) + additional_attrs
+    )
+
+    sd_path = os.path.join(tmp_dir, "signed_data.bin")
+    sig_path = os.path.join(tmp_dir, "sig.bin")
+    with open(sd_path, "wb") as f:
+        f.write(signed_data)
+
+    subprocess.run(
+        ["openssl", "dgst", "-sha256", "-sign", key_pem, "-out", sig_path, sd_path],
+        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+    with open(sig_path, "rb") as f:
+        sig_bytes = f.read()
+
+    sig_entry = struct.pack("<I", algo_id) + struct.pack("<I", len(sig_bytes)) + sig_bytes
+    sigs_seq = struct.pack("<I", len(sig_entry)) + sig_entry
+
+    signer_block = (
+        struct.pack("<I", len(signed_data)) + signed_data +
+        struct.pack("<I", len(sigs_seq)) + sigs_seq +
+        struct.pack("<I", len(pubkey_der_bytes)) + pubkey_der_bytes
+    )
+    signers_seq = struct.pack("<I", len(signer_block)) + signer_block
+    v2_block_value = struct.pack("<I", len(signers_seq)) + signers_seq
+
+    pair_bytes = struct.pack("<I", 0x7109871a) + v2_block_value
+    id_value_pair = struct.pack("<Q", len(pair_bytes)) + pair_bytes
+
+    # Total size_of_block (excluding the leading uint64 size_of_block itself)
+    size_of_block = len(id_value_pair) + 8 + 16
+    apk_sig_block = (
+        struct.pack("<Q", size_of_block) +
+        id_value_pair +
+        struct.pack("<Q", size_of_block) +
+        b"APK Sig Block 42"
+    )
+
+    new_cd_offset = cd_offset + len(apk_sig_block)
+    sec4_final = bytearray(raw_apk[eocd_pos:])
+    struct.pack_into("<I", sec4_final, 16, new_cd_offset)
+
+    final_apk_bytes = sec1 + apk_sig_block + sec3 + bytes(sec4_final)
+
+    out_apk_releases = os.path.join(RELEASES_DIR, "BVB-09-Android-Client.apk")
+    out_apk_pkg = os.path.join(ROOT_DIR, "android-pkg", "BVB-09-Android-Client.apk")
+    os.makedirs(os.path.dirname(out_apk_pkg), exist_ok=True)
+
+    with open(out_apk_releases, "wb") as f:
+        f.write(final_apk_bytes)
+    with open(out_apk_pkg, "wb") as f:
+        f.write(final_apk_bytes)
+
+    shutil.rmtree(tmp_dir, ignore_errors=True)
+    print(f"    -> BVB-09-Android-Client.apk (v1.909.3, v1+v2 signiert) erstellt ({len(final_apk_bytes) // 1024} KB)")
+
+
 if __name__ == "__main__":
     build_serverless_html()
     build_csharp_launcher()
@@ -2158,5 +2412,7 @@ if __name__ == "__main__":
     build_net_gui_setup_exe()
     build_portable_zip()
     build_cachyos_tar_gz()
-    print("\n[SUCCESS] Alle Windows- UND CachyOS-Pakete vollständig gebaut und nach /releases kopiert!")
+    build_android_apk()
+    print("\n[SUCCESS] Alle Windows-, CachyOS- UND Android-Pakete vollständig gebaut und nach /releases kopiert!")
+
 
