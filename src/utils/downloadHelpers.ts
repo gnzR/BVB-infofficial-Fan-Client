@@ -272,7 +272,7 @@ fi
 cat << 'EOF_PKG' > "$APP_DIR/package.json"
 {
   "name": "bvb-09-desktop",
-  "version": "1.909.3",
+  "version": "1.909.5",
   "main": "main.js"
 }
 EOF_PKG
@@ -441,7 +441,7 @@ EOF_MAIN
 cat << 'EOF_PKG' > "$APP_DIR/package.json"
 {
   "name": "bvb-09-desktop",
-  "version": "1.909.3",
+  "version": "1.909.5",
   "main": "main.js"
 }
 EOF_PKG
