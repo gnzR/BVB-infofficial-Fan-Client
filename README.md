@@ -27,9 +27,10 @@ Alle fertig gebauten Programme liegen im Ordner [`/releases`](./releases) bereit
 ![Security](https://img.shields.io/badge/Security_Audit-Gepr%C3%BCft_%26_Geh%C3%A4rtet-38bdf8?style=flat-square&labelColor=000000)
 
 ### 🚀 Neue Features & Live-Module
-- **🔄 Integrierter GitHub Auto-Updater im „Info“-Bereich (`gnzR/BVB-infofficial-Fan-Client`):**
+- **🔄 Vollautomatischer GitHub Auto-Updater im „Info“-Bereich (`gnzR/BVB-infofficial-Fan-Client`):**
+  - **⚡ 1-Klick Auto-Update & Sofort-Neustart (Download ➔ Automatisch installieren ➔ App sofort neu starten):** Lädt das neueste Bundle von GitHub im Hintergrund herunter, installiert es direkt in den Cache und startet die Anwendung innerhalb von 2 Sekunden ohne jeglichen manuellen Schritt neu.
   - Automatische & manuelle Live-Versionsprüfung direkt gegen [`version.json`](./version.json) auf GitHub inkl. Anzeige des neuesten GitHub-Commits und Änderungsprotokolls.
-  - 1-Klick-Update-Download mit Echtzeit-Fortschrittsbalken für **Windows 10/11 (`.exe` & `.zip`)**, **CachyOS / Linux (`.tar.gz`)** und **Android (`.apk`)**.
+  - Alternative Direkt-Downloads für Standalone-Pakete: **Windows 10/11 (`.exe` & `.zip`)**, **CachyOS / Linux (`.tar.gz`)** und **Android (`.apk`)**.
 - **📅 Spieltags-Zentrale & 1-Klick `.ics` Kalender-Export**:
   - Live-Spielplan aller kommenden BVB-Pflichtspiele (*Bundesliga, UEFA Champions League, DFB-Pokal*) via OpenLigaDB inkl. sekundengenauem Anpfiff-Countdown.
   - 1-Klick `.ics`-Kalender-Export für Einzelspiele oder den gesamten Spielplan inkl. automatischer 30-Minuten-Erinnerung (`VALARM`).

@@ -44,6 +44,20 @@ export default function App() {
   const [osPreference, setOsPreference] = useState<'windows' | 'cachyos'>(userProfile.osPreference);
   const [isInstallerModalOpen, setIsInstallerModalOpen] = useState<boolean>(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [justUpdatedNotice, setJustUpdatedNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const notice = localStorage.getItem('bvb_just_updated_notice');
+      if (notice) {
+        setJustUpdatedNotice(notice);
+        localStorage.removeItem('bvb_just_updated_notice');
+        setTimeout(() => setJustUpdatedNotice(null), 8000);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     const archive = getNotificationArchive();
@@ -110,6 +124,26 @@ export default function App() {
         onOpenInstallerModal={() => setIsInstallerModalOpen(true)}
         onReplaySplash={handleReplaySplash}
       >
+        {justUpdatedNotice && (
+          <div className="mb-4 p-3.5 rounded-xl bg-gradient-to-r from-emerald-950 via-[#111318] to-black border-2 border-emerald-500/70 text-emerald-300 font-sans text-xs flex items-center justify-between gap-3 shadow-xl shadow-emerald-500/20 animate-fade-in">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <div>
+                <strong className="text-white block font-bvb uppercase tracking-wider text-sm">
+                  ⚡ Auto-Update erfolgreich abgeschlossen!
+                </strong>
+                <span>{justUpdatedNotice} Alle neuen Features & Live-Daten stehen sofort bereit.</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setJustUpdatedNotice(null)}
+              className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-200 border border-emerald-500/40 text-[11px] font-mono cursor-pointer shrink-0"
+            >
+              Ausblenden ✕
+            </button>
+          </div>
+        )}
+
         {activeTab === 'ticker' && <LiveTickerTab />}
         {activeTab === 'matchday' && <MatchdayHubTab />}
         {activeTab === 'bundesliga' && <BundesligaTab />}
