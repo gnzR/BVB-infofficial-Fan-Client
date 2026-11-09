@@ -1,13 +1,13 @@
 {
-  "version": "1.909.5",
-  "versionCode": 19095,
+  "version": "1.909.6",
+  "versionCode": 19096,
   "releasedAt": "2026-11-09",
   "repositoryUrl": "https://github.com/gnzR/BVB-infofficial-Fan-Client",
   "changelog": [
+    "Neu in 1.909.6: Echtzeit-GitHub-API Versionsprüfung ohne CDN-Cache-Verzögerung & präzise Erkennung, ob tatsächlich eine NEUERE Version vorliegt",
     "Neu in 1.909.5: Automatischer Start-Updater (Option 1 Popup-Modal) für Windows, CachyOS/Linux & Android direkt nach dem 3D-Splashscreen",
     "Neu in 1.909.5: Vollautomatischer Android Paket-Installer (intent:// Direktstart ohne manuelle Dateisuche) & synchronisierte APK-Versionserkennung",
-    "Neu in 1.909.3: Intelligenter Deeplink-Resolver – fängt generische Portal-URLs (/bvb/, /news.html) ab und führt direkt zum spezifischen Artikel",
-    "Neu in 1.909.2: News-Archiv auf 90+ Artikel verdreifacht & 15-Minuten API-Rate-Limit-Schutz"
+    "Neu in 1.909.3: Intelligenter Deeplink-Resolver – fängt generische Portal-URLs (/bvb/, /news.html) ab und führt direkt zum spezifischen Artikel"
   ],
   "downloads": {
     "windowsPortableZip": "https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Windows-Portable.zip",
@@ -16,4 +16,5 @@
     "androidApk": "https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Android-Client.apk"
   }
 }
+
 

@@ -95,29 +95,61 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete, onDetectedUpdate }
           setCurrentStep('Prüfe im Hintergrund auf neue GitHub-Version...');
           setTransferredMb('4.4');
 
-          const cacheBust = `?t=${Date.now()}`;
-          const candidateUrls = [
-            `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/version.json${cacheBust}`,
-            `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/master/version.json${cacheBust}`,
-          ];
-
-          for (const url of candidateUrls) {
-            try {
-              const controller = new AbortController();
-              const timeoutId = setTimeout(() => controller.abort(), 2400);
-              const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
-              clearTimeout(timeoutId);
-              if (res.ok) {
-                const data: StartupRemoteVersionPayload = await res.json();
+          let checkedViaApi = false;
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2400);
+            const apiRes = await fetch(
+              `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents/version.json?ref=main&_=${Date.now()}`,
+              {
+                headers: { Accept: 'application/vnd.github.v3+json' },
+                cache: 'no-store',
+                signal: controller.signal,
+              }
+            );
+            clearTimeout(timeoutId);
+            if (apiRes.ok) {
+              const meta = await apiRes.json();
+              if (meta && typeof meta.content === 'string') {
+                const decodedJson = decodeURIComponent(escape(window.atob(meta.content.replace(/\s/g, ''))));
+                const data: StartupRemoteVersionPayload = JSON.parse(decodedJson);
                 if (!isCancelled && data && typeof data.version === 'string') {
+                  checkedViaApi = true;
                   if (compareVer(data.version, CURRENT_APP_VERSION) > 0 && onDetectedUpdate) {
                     onDetectedUpdate(data);
                   }
-                  break;
                 }
               }
-            } catch {
-              // Offline or timeout -> continue startup smoothly
+            }
+          } catch {
+            // Fallback to raw URLs
+          }
+
+          if (!checkedViaApi) {
+            const cacheBust = `?t=${Date.now()}`;
+            const candidateUrls = [
+              `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/version.json${cacheBust}`,
+              `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/master/version.json${cacheBust}`,
+            ];
+
+            for (const url of candidateUrls) {
+              try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2400);
+                const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+                clearTimeout(timeoutId);
+                if (res.ok) {
+                  const data: StartupRemoteVersionPayload = await res.json();
+                  if (!isCancelled && data && typeof data.version === 'string') {
+                    if (compareVer(data.version, CURRENT_APP_VERSION) > 0 && onDetectedUpdate) {
+                      onDetectedUpdate(data);
+                    }
+                    break;
+                  }
+                }
+              } catch {
+                // Offline or timeout -> continue startup smoothly
+              }
             }
           }
         }

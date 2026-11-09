@@ -1333,15 +1333,15 @@ def build_serverless_html() -> str:
 
     if (url.indexOf("/version.json") === 0 || (url.indexOf("version.json") !== -1 && url.indexOf("githubusercontent.com") === -1)) {
       return makeJsonResponse({
-        version: "1.909.5",
-        versionCode: 19095,
+        version: "1.909.6",
+        versionCode: 19096,
         releasedAt: "2026-11-09",
         repositoryUrl: "https://github.com/gnzR/BVB-infofficial-Fan-Client",
         changelog: [
+          "Neu in 1.909.6: Echtzeit-GitHub-API Versionsprüfung ohne CDN-Cache-Verzögerung & präzise Erkennung, ob tatsächlich eine NEUERE Version vorliegt",
           "Neu in 1.909.5: Automatischer Start-Updater (Option 1 Popup-Modal) für Windows, CachyOS/Linux & Android direkt nach dem 3D-Splashscreen",
           "Neu in 1.909.5: Vollautomatischer Android Paket-Installer (intent:// Direktstart ohne manuelle Dateisuche) & synchronisierte APK-Versionserkennung",
-          "Neu in 1.909.3: Intelligenter Deeplink-Resolver – fängt generische Portal-URLs (/bvb/, /news.html) ab und führt direkt zum spezifischen Artikel",
-          "Neu in 1.909.2: News-Archiv auf 90+ Artikel verdreifacht & 15-Minuten API-Rate-Limit-Schutz"
+          "Neu in 1.909.3: Intelligenter Deeplink-Resolver – fängt generische Portal-URLs (/bvb/, /news.html) ab und führt direkt zum spezifischen Artikel"
         ]
       });
     }
@@ -1421,8 +1421,8 @@ using System.Windows.Forms;
 [assembly: AssemblyCompany("BVB 09 Fan Community")]
 [assembly: AssemblyProduct("BVB Inofficial Fan Client")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 BVB 09 Client")]
-[assembly: AssemblyVersion("1.909.5.0")]
-[assembly: AssemblyFileVersion("1.909.5.0")]
+[assembly: AssemblyVersion("1.909.6.0")]
+[assembly: AssemblyFileVersion("1.909.6.0")]
 
 namespace BVB09Client
 {
@@ -1660,8 +1660,8 @@ using System.Drawing;
 [assembly: AssemblyCompany("BVB 09 Fan Community")]
 [assembly: AssemblyProduct("BVB Inofficial Fan Client")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 BVB 09 Client")]
-[assembly: AssemblyVersion("1.909.5.0")]
-[assembly: AssemblyFileVersion("1.909.5.0")]
+[assembly: AssemblyVersion("1.909.6.0")]
+[assembly: AssemblyFileVersion("1.909.6.0")]
 
 namespace BVB09Setup
 {
@@ -1912,7 +1912,7 @@ echo -e "${YELLOW}
  | |_) | |_| | |_) | | |_| |\\__, |
  |____/ \\___/|____/   \\___/   /_/ 
 ${NC}"
-echo -e "${YELLOW}[+] Starte BVB Inofficial Fan Client Beta 1.909.5 Installation auf CachyOS...${NC}\\n"
+echo -e "${YELLOW}[+] Starte BVB Inofficial Fan Client Beta 1.909.6 Installation auf CachyOS...${NC}\\n"
 
 echo -e "${BLUE}[1/4] Prüfe CachyOS / Arch System-Abhängigkeiten (Qt6 & Multimedia)...${NC}"
 DEPS=("python-pyqt6-webengine" "python-pyqt6" "libnotify" "pipewire" "pipewire-pulse" "alsa-utils" "gst-plugins-good" "gst-plugin-pipewire")
@@ -1935,7 +1935,7 @@ if [ ${#MISSING[@]} -ne 0 ]; then
     fi
 fi
 
-echo -e "${BLUE}[2/4] Installiere Anwendungsdateien (Offline-Desktop-Bundle Beta 1.909.5)...${NC}"
+echo -e "${BLUE}[2/4] Installiere Anwendungsdateien (Offline-Desktop-Bundle Beta 1.909.6)...${NC}"
 APP_DIR="$HOME/.local/share/bvb-desktop"
 mkdir -p "$APP_DIR"
 
@@ -1987,7 +1987,7 @@ sudo chmod +x /usr/local/bin/bvb-desktop
 echo -e "${BLUE}[4/4] Richte Desktop-Icon & Anwendungsmenü ein...${NC}"
 DESKTOP_ENTRY="[Desktop Entry]
 Name=BVB 09 Transfermarkt Client
-Comment=Borussia Dortmund 09 Desktop Client Beta 1.909.5 (Niko Kovac Edition)
+Comment=Borussia Dortmund 09 Desktop Client Beta 1.909.6 (Niko Kovac Edition)
 Exec=/usr/local/bin/bvb-desktop
 Icon=bvb-logo
 Terminal=false
@@ -2005,7 +2005,7 @@ fi
 
 update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
 
-echo -e "\\n${GREEN}[✓] BVB 09 Client Beta 1.909.5 ERFOLGREICH auf CachyOS installiert!${NC}"
+echo -e "\\n${GREEN}[✓] BVB 09 Client Beta 1.909.6 ERFOLGREICH auf CachyOS installiert!${NC}"
 echo -e "${YELLOW}[+] Starten: im Terminal mit 'bvb-desktop' oder über dein Anwendungsmenü.${NC}\\n"
 """
 
@@ -2058,7 +2058,7 @@ app = QApplication(sys.argv)
 app.setApplicationName("BVB Inofficial Fan Client")
 
 window = QMainWindow()
-window.setWindowTitle("BVB Inofficial Fan Client · Beta 1.909.5 (CachyOS Desktop App)")
+window.setWindowTitle("BVB Inofficial Fan Client · Beta 1.909.6 (CachyOS Desktop App)")
 window.resize(1440, 920)
 window.setStyleSheet("background-color: #07080a;")
 
@@ -2101,10 +2101,10 @@ sys.exit(app.exec())
 """
 
     readme_cachy = """===================================================================
- BORUSSIA DORTMUND 09 DESKTOP CLIENT Beta 1.909.5 FOR CACHYOS / ARCH
+ BORUSSIA DORTMUND 09 DESKTOP CLIENT Beta 1.909.6 FOR CACHYOS / ARCH
 ===================================================================
 
-NEU IN VERSION Beta 1.909.5:
+NEU IN VERSION Beta 1.909.6:
   - Zweizeilige Profi-Desktop-Navigation (inkl. 30 Tage Statistik)
   - Geprüftes Netradio inkl. Radio Euskirchen (192 kbps MP3) & Radio 91.2 Dortmund
   - Idee 1: Interaktive BVB-Taktiktafel & Wunsch-Startelf-Planer (Niko Kovac)
@@ -2152,7 +2152,7 @@ DEINSTALLATION:
 
 
 def build_android_apk():
-    print("[6/6] Baue & signiere aktuelle Android-APK (BVB-09-Android-Client.apk v1.909.5)...")
+    print("[6/6] Baue & signiere aktuelle Android-APK (BVB-09-Android-Client.apk v1.909.6)...")
     import hashlib
     import struct
     import tempfile
@@ -2185,16 +2185,16 @@ def build_android_apk():
             if name.startswith("assets/audio/"):
                 chants[name] = zin.read(name)
 
-    # Patch binary AndroidManifest.xml versionName ("1.909.x" -> "1.909.5") and versionCode (1909x -> 19095)
-    for old_ver in ["1.909.1", "1.909.2", "1.909.3", "1.909.4"]:
+    # Patch binary AndroidManifest.xml versionName ("1.909.x" -> "1.909.6") and versionCode (1909x -> 19096)
+    for old_ver in ["1.909.1", "1.909.2", "1.909.3", "1.909.4", "1.909.5"]:
         old_u16 = old_ver.encode("utf-16le")
-        new_u16 = "1.909.5".encode("utf-16le")
+        new_u16 = "1.909.6".encode("utf-16le")
         if old_u16 in manifest_bin:
             manifest_bin = manifest_bin.replace(old_u16, new_u16)
 
-    for old_code in [19091, 19092, 19093, 19094]:
+    for old_code in [19091, 19092, 19093, 19094, 19095]:
         old_c = struct.pack("<I", old_code)
-        new_c = struct.pack("<I", 19095)
+        new_c = struct.pack("<I", 19096)
         if old_c in manifest_bin:
             manifest_bin = manifest_bin.replace(old_c, new_c, 1)
 
@@ -2402,7 +2402,7 @@ def build_android_apk():
         f.write(final_apk_bytes)
 
     shutil.rmtree(tmp_dir, ignore_errors=True)
-    print(f"    -> BVB-09-Android-Client.apk (v1.909.5, v1+v2 signiert) erstellt ({len(final_apk_bytes) // 1024} KB)")
+    print(f"    -> BVB-09-Android-Client.apk (v1.909.6, v1+v2 signiert) erstellt ({len(final_apk_bytes) // 1024} KB)")
 
 
 if __name__ == "__main__":

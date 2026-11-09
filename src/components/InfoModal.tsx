@@ -42,7 +42,7 @@ interface InfoModalProps {
   onClose: () => void;
 }
 
-export const CURRENT_APP_VERSION = '1.909.5';
+export const CURRENT_APP_VERSION = '1.909.6';
 export const GITHUB_REPO_OWNER = 'gnzR';
 export const GITHUB_REPO_NAME = 'BVB-infofficial-Fan-Client';
 export const GITHUB_REPO_URL = `https://github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}`;
@@ -112,39 +112,65 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
     setDownloadStatusText('');
     const cacheBuster = `?t=${Date.now()}`;
 
-    const candidateUrls = [
-      `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/version.json${cacheBuster}`,
-      `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/master/version.json${cacheBuster}`,
-      `/version.json${cacheBuster}`,
-    ];
-
     let fetchedVersionData: RemoteVersionPayload | null = null;
 
-    for (const url of candidateUrls) {
-      try {
-        const res = await fetch(url, { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && typeof data.version === 'string') {
-            fetchedVersionData = data;
-            break;
+    // 1. Primary: Query uncached GitHub Contents API directly so new commits are detected in real-time (0s CDN lag)
+    try {
+      const apiRes = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents/version.json?ref=main&_=${Date.now()}`,
+        {
+          headers: { Accept: 'application/vnd.github.v3+json' },
+          cache: 'no-store',
+        }
+      );
+      if (apiRes.ok) {
+        const meta = await apiRes.json();
+        if (meta && typeof meta.content === 'string') {
+          const decodedJson = decodeURIComponent(escape(window.atob(meta.content.replace(/\s/g, ''))));
+          const parsed = JSON.parse(decodedJson);
+          if (parsed && typeof parsed.version === 'string') {
+            fetchedVersionData = parsed;
           }
         }
-      } catch {
-        // Try next candidate URL
+      }
+    } catch {
+      // Fallback to raw URLs below if API rate-limited
+    }
+
+    // 2. Fallback: raw.githubusercontent.com (never fall back to local /version.json for remote check)
+    if (!fetchedVersionData) {
+      const candidateUrls = [
+        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/version.json${cacheBuster}`,
+        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/master/version.json${cacheBuster}`,
+      ];
+
+      for (const url of candidateUrls) {
+        try {
+          const res = await fetch(url, { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && typeof data.version === 'string') {
+              fetchedVersionData = data;
+              break;
+            }
+          }
+        } catch {
+          // Try next candidate URL
+        }
       }
     }
 
     // Also query GitHub API for latest commit metadata on gnzR/BVB-infofficial-Fan-Client
     try {
       const commitRes = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/commits?per_page=1`,
-        { headers: { Accept: 'application/vnd.github.v3+json' } }
+        `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/commits?per_page=1&_=${Date.now()}`,
+        { headers: { Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' }
       );
       if (commitRes.ok) {
         const commits = await commitRes.json();
         if (Array.isArray(commits) && commits.length > 0) {
           const c = commits[0];
+          const commitMsg = String(c.commit?.message || '').split('\n')[0].slice(0, 90);
           setLatestCommitInfo({
             sha: String(c.sha || '').slice(0, 7),
             date: c.commit?.committer?.date
@@ -156,8 +182,17 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
                   minute: '2-digit',
                 })
               : 'Aktuell',
-            message: String(c.commit?.message || '').split('\n')[0].slice(0, 90),
+            message: commitMsg,
           });
+
+          // If commit message explicitly mentions a newer version number (e.g. "1.909.7"), respect it if higher
+          const verMatch = commitMsg.match(/1\.909\.\d+/);
+          if (verMatch && fetchedVersionData && compareVersions(verMatch[0], fetchedVersionData.version) > 0) {
+            fetchedVersionData = {
+              ...fetchedVersionData,
+              version: verMatch[0],
+            };
+          }
         }
       }
     } catch {
@@ -168,24 +203,30 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
     setLastCheckedTime(nowStr);
 
     if (fetchedVersionData) {
-      setRemoteInfo(fetchedVersionData);
       const cmp = compareVersions(fetchedVersionData.version, CURRENT_APP_VERSION);
       if (cmp > 0) {
+        // Strictly a NEWER version exists on GitHub!
+        setRemoteInfo(fetchedVersionData);
         setUpdateStatus('update_available');
       } else {
+        // Installed version is already equal or newer -> no new version on GitHub
+        setRemoteInfo({
+          ...fetchedVersionData,
+          version: CURRENT_APP_VERSION,
+        });
         setUpdateStatus('up_to_date');
       }
     } else {
-      // Fallback if version.json is not yet pushed to GitHub main branch
+      // Fallback if offline
       setRemoteInfo({
         version: CURRENT_APP_VERSION,
         releasedAt: new Date().toISOString().slice(0, 10),
         repositoryUrl: GITHUB_REPO_URL,
         changelog: [
+          'Neu in 1.909.6: Echtzeit-GitHub-API Versionsprüfung ohne CDN-Cache-Verzögerung & präzise Erkennung neuer Versionen',
           'Neu in 1.909.5: Automatischer Start-Updater (Option 1 Popup-Modal) für Windows, Linux & Android direkt nach dem 3D-Splashscreen',
           'Neu in 1.909.5: Vollautomatischer Android Paket-Installer (intent:// Direktstart ohne manuelle Dateisuche)',
-          'Neu in 1.909.2: News-Archiv auf 90+ Artikel verdreifacht (BVB.de, Transfermarkt, Kicker, Ruhr Nachrichten, BVBWLD.de)',
-          'Neu in 1.909.2: 15-Minuten API-Rate-Limit-Schutz & CORS-Resilienz für lokalen Standalone-Betrieb',
+          'Neu in 1.909.3: Intelligenter Deeplink-Resolver – fängt generische Portal-URLs (/bvb/, /news.html) ab und führt direkt zum spezifischen Artikel',
         ],
       });
       setUpdateStatus('up_to_date');
@@ -554,12 +595,18 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               <div className="p-3 rounded-lg bg-black/60 border border-slate-800">
-                <span className="text-[10px] text-slate-400 uppercase block">GitHub Online-Version</span>
-                <span className="text-sm font-extrabold text-[#FDE100]">
-                  {updateStatus === 'checking'
-                    ? 'Wird abgefragt...'
-                    : `Beta ${remoteInfo?.version || CURRENT_APP_VERSION}`}
-                </span>
+                <span className="text-[10px] text-slate-400 uppercase block">Neue Version auf GitHub?</span>
+                {updateStatus === 'checking' ? (
+                  <span className="text-sm font-extrabold text-sky-400">Prüfe GitHub...</span>
+                ) : updateStatus === 'update_available' ? (
+                  <span className="text-sm font-extrabold text-[#FDE100]">
+                    Ja ➔ Beta {remoteInfo?.version}
+                  </span>
+                ) : (
+                  <span className="text-sm font-extrabold text-emerald-400">
+                    Nein (v{CURRENT_APP_VERSION} aktuell)
+                  </span>
+                )}
               </div>
 
               <div className="p-3 rounded-lg bg-black/60 border border-slate-800">
@@ -571,12 +618,12 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
                 )}
                 {updateStatus === 'up_to_date' && (
                   <span className="text-emerald-400 font-bold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Aktuell ({lastCheckedTime})
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Keine neue Version ({lastCheckedTime})
                   </span>
                 )}
                 {updateStatus === 'update_available' && (
                   <span className="text-amber-400 font-extrabold flex items-center gap-1.5 animate-pulse">
-                    <AlertTriangle className="w-3.5 h-3.5" /> Update verfügbar!
+                    <AlertTriangle className="w-3.5 h-3.5" /> Neue Version verfügbar!
                   </span>
                 )}
                 {updateStatus === 'error' && (

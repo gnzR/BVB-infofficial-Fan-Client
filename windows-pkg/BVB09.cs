@@ -9,8 +9,8 @@ using System.Windows.Forms;
 [assembly: AssemblyCompany("BVB 09 Fan Community")]
 [assembly: AssemblyProduct("BVB Inofficial Fan Client")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 BVB 09 Client")]
-[assembly: AssemblyVersion("1.909.5.0")]
-[assembly: AssemblyFileVersion("1.909.5.0")]
+[assembly: AssemblyVersion("1.909.6.0")]
+[assembly: AssemblyFileVersion("1.909.6.0")]
 
 namespace BVB09Client
 {

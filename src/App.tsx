@@ -93,6 +93,36 @@ export default function App() {
     let isCancelled = false;
 
     async function checkGitHubOnStartup() {
+      // 1. Primary: Uncached GitHub Contents API (0s CDN lag)
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4500);
+        const apiRes = await fetch(
+          `https://api.github.com/repos/gnzR/BVB-infofficial-Fan-Client/contents/version.json?ref=main&_=${Date.now()}`,
+          {
+            headers: { Accept: 'application/vnd.github.v3+json' },
+            cache: 'no-store',
+            signal: controller.signal,
+          }
+        );
+        clearTimeout(timeoutId);
+        if (apiRes.ok) {
+          const meta = await apiRes.json();
+          if (meta && typeof meta.content === 'string') {
+            const decodedJson = decodeURIComponent(escape(window.atob(meta.content.replace(/\s/g, ''))));
+            const data: StartupRemoteVersionPayload = JSON.parse(decodedJson);
+            if (!isCancelled && data && typeof data.version === 'string') {
+              if (compareVersions(data.version, CURRENT_APP_VERSION) > 0) {
+                setStartupRemoteUpdate(data);
+              }
+              return;
+            }
+          }
+        }
+      } catch {
+        // Fallback to raw URLs below
+      }
+
       const cacheBust = `?t=${Date.now()}`;
       const candidateUrls = [
         `https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/version.json${cacheBust}`,
