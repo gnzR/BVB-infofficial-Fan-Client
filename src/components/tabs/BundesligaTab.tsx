@@ -23,6 +23,7 @@ import {
   FormattedBvbMatch,
   GoalGetter,
 } from '../../utils/openLigaService';
+import { OfficialBvbLogo } from '../OfficialBvbLogo';
 import { ChampionsLeagueSection } from '../ChampionsLeagueSection';
 import { MatchdayCountdownWeatherWidget } from '../MatchdayCountdownWeatherWidget';
 
@@ -302,14 +303,18 @@ export const BundesligaTab: React.FC = () => {
 
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2.5">
-                          <img
-                            src={row.teamIconUrl}
-                            alt={row.teamName}
-                            className="w-5 h-5 object-contain shrink-0"
-                            onError={(e) => {
-                              (e.target as HTMLElement).style.display = 'none';
-                            }}
-                          />
+                          {row.isBVB ? (
+                            <OfficialBvbLogo className="w-5 h-5 shrink-0 drop-shadow-[0_0_5px_rgba(253,225,0,0.4)]" />
+                          ) : (
+                            <img
+                              src={row.teamIconUrl}
+                              alt={row.teamName}
+                              className="w-5 h-5 object-contain shrink-0"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          )}
                           <span className={`text-sm ${row.isBVB ? 'text-[#FDE100] font-black font-bvb' : 'text-slate-200'}`}>
                             {row.teamName}
                           </span>
@@ -377,9 +382,7 @@ export const BundesligaTab: React.FC = () => {
 
                     <div className="flex items-center justify-between py-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-[#FDE100] text-black font-extrabold flex items-center justify-center text-xs font-bvb">
-                          BVB
-                        </div>
+                        <OfficialBvbLogo className="w-8 h-8 shrink-0 drop-shadow-[0_0_6px_rgba(253,225,0,0.35)]" />
                         <span className="font-bold text-white text-sm">Borussia Dortmund</span>
                       </div>
 

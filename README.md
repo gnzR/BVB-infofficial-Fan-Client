@@ -2,7 +2,7 @@
 
 > **100 % Kostenloses, ehrenamtliches Fanprojekt (Non-Profit)**  
 > Entwickelt von **w33derlich & Dobby** — erstellt und optimiert mithilfe von **Google Gemini**.  
-> Für **Windows 10/11** und **CachyOS / Arch Linux**.
+> Für **Windows 10/11**, **CachyOS / Arch Linux** und **Android (⚠️ Absolute Beta-Testversion)**.
 
 ---
 
@@ -16,6 +16,7 @@ Alle fertig gebauten Programme liegen im Ordner [`/releases`](./releases) bereit
 | **🪟 Windows 10 / 11 (Empfohlen)** | [`releases/BVB-09-Windows-Portable.zip`](./releases/BVB-09-Windows-Portable.zip) | Komplettpaket mit Desktop-Symbol (`BVB09.exe`) & `Installation-Starten.cmd` (100 % ohne Windows-Defender-Warnmeldung). |
 | **🪟 Windows 10 / 11 Setup (.exe)** | [`releases/BVB-09-Windows-Setup.exe`](./releases/BVB-09-Windows-Setup.exe) | Klassischer Windows-Installations-Assistent (legt automatisch das BVB-Symbol auf deinen Desktop). |
 | **🐧 CachyOS / Arch Linux** | [`releases/bvb-09-cachyos-package.tar.gz`](./releases/bvb-09-cachyos-package.tar.gz) | Echtes Linux-Desktop-Programm inkl. `installer.sh`, `deinstall.sh` und Startmenü-Eintrag. |
+| **📱 Android Smartphone & Tablet (.apk)** | [`releases/BVB-09-Android-Client.apk`](./releases/BVB-09-Android-Client.apk) | **⚠️ Frühe, experimentelle Testversion (Absolute Beta!)** – Direkt installierbare Android-App mit offiziellem BVB-09-App-Icon & Touch-Navigation. |
 
 ---
 
@@ -47,7 +48,7 @@ Alle fertig gebauten Programme liegen im Ordner [`/releases`](./releases) bereit
 | **HTTP Security Header** | ✅ Behoben | `X-Content-Type-Options: nosniff`, `Referrer-Policy` und `X-Permitted-Cross-Domain-Policies` im Backend aktiviert. |
 | **Web-Audio Memory-Leak** | ✅ Behoben | Automatischer `AudioContext`-Lebenszyklus (`ctx.close()`) verhindert Ton-Ausfall nach mehrmaligem Abspielen von Torhymne, Trommel-Loop, Elfmeterschießen & Soundboard. |
 | **Tor-Alarm Timer-Fix** | ✅ Behoben | Vorherige Auto-Dismiss-Timer werden bei aufeinanderfolgenden Toren sauber per `clearTimeout` zurückgesetzt. |
-| **Windows & Android Build** | ✅ Behoben | Gzip-In-Memory-Bootloader (`665 KB`) für `BVB-09-Windows-Setup.exe` & `BVB-09-Windows-Portable.zip` sowie vollständiger 11-Routen-Interceptor im `file://`-Modus. |
+| **Windows & Android Build** | ✅ Behoben | Gzip-In-Memory-Bootloader (`665 KB`) für `BVB-09-Windows-Setup.exe` & `BVB-09-Windows-Portable.zip`, vollständiger 11-Routen-Interceptor im `file://`-Modus sowie offizielles BVB-09-Launcher-Icon (`@drawable/icon` in `resources.arsc` & `AndroidManifest.xml`) für `BVB-09-Android-Client.apk`. |
 
 ---
 
@@ -118,13 +119,36 @@ Viele klicken auf GitHub auf eine Datei und wundern sich, dass kein Download sta
 
 ---
 
+### 📱 Variante 3: Installation auf Android-Smartphones & Tablets (⚠️ Absolute Beta-Testversion!)
+
+> **⚠️ WICHTIGER HINWEIS ZUR ANDROID-VERSION (ABSOLUTE BETA!):**  
+> Die Android-App (`BVB-09-Android-Client.apk`) befindet sich aktuell in einer **sehr frühen, experimentellen Testphase (Absolute Beta)**.  
+> Alle Hauptfunktionen (Live-Ticker, Spielplan, 1:1 Signal Iduna Park Blockplan, Kader, 60-Tage-News & Fangesänge) sind bereits an Bord und das offizielle **BVB-09-Logo** wird auf dem Startbildschirm angezeigt – es kann auf einzelnen Smartphone-Modellen oder Android-Versionen aber noch zu kleineren Anzeige- oder Performance-Ecken kommen.
+
+#### Schritt-für-Schritt-Anleitung für dein Android-Handy:
+1. **APK-Datei von GitHub herunterladen:**
+   - Tippe hier auf GitHub oben in der Tabelle auf **[`releases/BVB-09-Android-Client.apk`](./releases/BVB-09-Android-Client.apk)**.
+   - Tippe auf der nächsten Seite auf **„View raw“** (oder auf das **Download-Symbol 📥 „Download raw file“**), damit die Datei `BVB-09-Android-Client.apk` in deinem `Downloads`-Ordner gespeichert wird.
+   - *(Falls dein Browser fragt „Datei könnte schädlich sein / Trotzdem herunterladen?“: Tippe auf **„Trotzdem herunterladen“** – diese Meldung erscheint bei Android standardmäßig bei jeder `.apk`-Datei außerhalb des Google Play Stores).*
+2. **Installation starten:**
+   - Öffne die heruntergeladene Datei **`BVB-09-Android-Client.apk`** über deine Benachrichtigungsleiste oder über die App **„Eigene Dateien / Files -> Downloads“**.
+3. **Unbekannte Apps einmalig erlauben (falls gefragt):**
+   - Da dieses kostenlose Fanprojekt direkt über GitHub und nicht über den Google Play Store verteilt wird, fragt Android beim ersten Mal eventuell: *„Aus Sicherheitsgründen ist die Installation unbekannter Apps aus dieser Quelle nicht zulässig“*.
+   - Tippe im Hinweis auf **„Einstellungen“** und aktiviere den Schalter **„Aus dieser Quelle zulassen“** (bzw. *„Unbekannte Apps installieren“*).
+4. **Abschließen & Starten:**
+   - Tippe auf **„Installieren“** *(falls Google Play Protect ein Hinweisfenster wegen unbekanntem Entwickler anzeigt: auf **„Weitere Details“** -> **„Trotzdem installieren“** tippen)*.
+   - **Fertig!** Auf deinem Android-Startbildschirm erscheint nun der **BVB Fan Client** mit dem echten schwarzgelben **BVB 09 Logo**.
+
+---
+
 ### ❓ Häufige Einsteiger-Fragen (FAQ)
 
 - **Kostet das Programm irgendetwas oder gibt es versteckte Abos?**  
   Nein! 100 % kostenlos, 0 % Werbung, 0 % Datensammelei. Von BVB-Fans für BVB-Fans.
 - **Wie lösche ich das Programm wieder, wenn ich es nicht mehr brauche?**  
   - **Windows:** Einfach die Desktop-Verknüpfung löschen und (falls über den Installer eingerichtet) den Ordner unter `C:\Benutzer\<DeinName>\AppData\Local\BVB09-FanClient` löschen.  
-  - **Linux / CachyOS:** Einfach die mitgelieferte Datei `./deinstall.sh` starten.
+  - **Linux / CachyOS:** Einfach die mitgelieferte Datei `./deinstall.sh` starten.  
+  - **Android:** Genau wie jede andere Handy-App – lange auf das **BVB Fan Client**-Icon auf dem Startbildschirm drücken und **„Deinstallieren“** wählen.
 
 ---
 

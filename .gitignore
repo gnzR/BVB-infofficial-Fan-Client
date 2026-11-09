@@ -15,3 +15,4 @@ public/assets/aistudio/
 *BVB09-App.html*
 android-pkg/
 *.apk
+!releases/BVB-09-Android-Client.apk

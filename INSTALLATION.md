@@ -45,4 +45,16 @@ Viele klicken auf GitHub auf einen Dateinamen und wundern sich, warum nichts her
 
 ---
 
+## 📱 Methode 3: Android-Smartphones & Tablets (⚠️ Absolute Beta-Testversion!)
+
+> **⚠️ Hinweis:** Die Android-App befindet sich aktuell in einer **frühen, experimentellen Testphase (Absolute Beta)**.
+
+1. Tippe im Ordner **[`/releases`](./releases)** auf die Datei **[`BVB-09-Android-Client.apk`](./releases/BVB-09-Android-Client.apk)** und wähle **„View raw“** bzw. **„Download raw file“**.
+2. Öffne die heruntergeladene Datei `BVB-09-Android-Client.apk` in deinem `Downloads`-Ordner auf dem Smartphone.
+3. Falls Android nachfragt, erlaube einmalig **„Aus dieser Quelle zulassen / Unbekannte Apps installieren“** und tippe auf **„Installieren“**.
+4. **Fertig!** Der **BVB Fan Client** erscheint nun mit dem offiziellen **BVB 09 Logo** auf deinem Startbildschirm.
+
+---
+
 **Viel Spaß mit dem BVB Inofficial Fan Client! Heja BVB! 🖤💛**
+

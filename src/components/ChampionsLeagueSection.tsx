@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Trophy, Sparkles, RefreshCw, CheckCircle2, ShieldCheck, Calculator, RotateCcw, Flame } from 'lucide-react';
+import { OfficialBvbLogo } from './OfficialBvbLogo';
 
 export interface UclStandingRow {
   rank: number;
@@ -550,9 +551,7 @@ export const ChampionsLeagueSection: React.FC<ChampionsLeagueSectionProps> = ({ 
                     <td className="py-2.5 px-4">
                       <div className="flex items-center gap-2.5">
                         {row.isBVB && (
-                          <span className="w-6 h-6 rounded-full bg-[#FDE100] text-black font-black text-[10px] flex items-center justify-center font-bvb shrink-0">
-                            BVB
-                          </span>
+                          <OfficialBvbLogo className="w-6 h-6 shrink-0 drop-shadow-[0_0_6px_rgba(253,225,0,0.35)]" />
                         )}
                         <span className={row.isBVB ? 'text-[#FDE100] font-extrabold font-bvb text-base' : 'text-slate-200'}>
                           {row.teamName}

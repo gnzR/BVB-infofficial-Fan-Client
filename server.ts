@@ -1829,9 +1829,11 @@ app.get('/api/download/BVB-09-Windows-Setup.cmd', (req, res) => {
   }
 });
 
-// Direct Compiled Android APK (BVB-09-Android-Client.apk) - Hidden from GitHub via .gitignore
+// Direct Compiled Android APK (BVB-09-Android-Client.apk)
 app.get('/api/download/BVB-09-Android-Client.apk', (req, res) => {
-  const filePath = path.resolve(__dirname, 'android-pkg', 'BVB-09-Android-Client.apk');
+  const releasePath = path.resolve(__dirname, 'releases', 'BVB-09-Android-Client.apk');
+  const fallbackPath = path.resolve(__dirname, 'android-pkg', 'BVB-09-Android-Client.apk');
+  const filePath = fs.existsSync(releasePath) ? releasePath : fallbackPath;
   if (fs.existsSync(filePath)) {
     res.setHeader('Content-Type', 'application/vnd.android.package-archive');
     res.setHeader('Content-Disposition', 'attachment; filename="BVB-09-Android-Client.apk"');

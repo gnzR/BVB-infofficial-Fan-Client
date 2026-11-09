@@ -20,6 +20,7 @@ import {
   Compass,
   Sparkles,
 } from 'lucide-react';
+import { OfficialBvbLogo } from '../OfficialBvbLogo';
 import {
   UpcomingBvbMatch,
   downloadSingleMatchIcs,
@@ -878,7 +879,10 @@ export const MatchdayHubTab: React.FC = () => {
               {/* Left: BVB */}
               <div className="p-5 rounded-2xl bg-gradient-to-br from-[#FDE100]/15 to-black border border-[#FDE100]/40 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-black text-[#FDE100] font-bvb uppercase">Borussia Dortmund</span>
+                  <div className="flex items-center gap-2">
+                    <OfficialBvbLogo className="w-7 h-7 shrink-0 drop-shadow-[0_0_6px_rgba(253,225,0,0.4)]" />
+                    <span className="text-lg font-black text-[#FDE100] font-bvb uppercase">Borussia Dortmund</span>
+                  </div>
                   <span className="px-2.5 py-0.5 rounded bg-[#FDE100] text-black font-extrabold font-mono text-xs">
                     Platz #{bvbLiveRow.rank}
                   </span>
