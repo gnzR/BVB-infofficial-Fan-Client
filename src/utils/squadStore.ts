@@ -246,29 +246,35 @@ export async function syncLiveBvbSquad(
     }
   };
 
+  const isHttpOrigin =
+    typeof window !== 'undefined' &&
+    (window.location.protocol === 'http:' || window.location.protocol === 'https:');
+
   try {
     onProgress?.(35, '[2/4] Lade Live-Pflichtspieldaten aller 32 BVB-Spieler (BL, CL & DFB-Pokal)...');
-    // 1a. Try backend multi-competition endpoint first
+    // 1a. Try backend multi-competition endpoint first (ONLY if running on http/https server, skip in file:// desktop mode)
     let gotFromBackend = false;
-    try {
-      const localRes = await fetch('/api/bvb/squad/live', { signal: AbortSignal.timeout(4500) });
-      if (localRes.ok) {
-        const localData = await localRes.json();
-        if (localData.success && localData.rostersByCompetition) {
-          mergeRosterList(localData.rostersByCompetition.bundesliga || [], 'bundesliga');
-          mergeRosterList(localData.rostersByCompetition.ucl || [], 'ucl');
-          mergeRosterList(localData.rostersByCompetition.dfbPokal || [], 'dfbPokal');
-          gotFromBackend = aggregatedMap.size > 0;
+    if (isHttpOrigin) {
+      try {
+        const localRes = await fetch('/api/bvb/squad/live', { signal: AbortSignal.timeout(2200) });
+        if (localRes.ok) {
+          const localData = await localRes.json();
+          if (localData.success && localData.rostersByCompetition) {
+            mergeRosterList(localData.rostersByCompetition.bundesliga || [], 'bundesliga');
+            mergeRosterList(localData.rostersByCompetition.ucl || [], 'ucl');
+            mergeRosterList(localData.rostersByCompetition.dfbPokal || [], 'dfbPokal');
+            gotFromBackend = aggregatedMap.size > 0;
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
 
     // 1b. Direct client fetch across all 3 ESPN competitions (also works in serverless Windows/Linux/Android packages)
     if (!gotFromBackend) {
       const [blRes, uclRes, dfbRes] = await Promise.allSettled([
-        fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams/124/roster', { signal: AbortSignal.timeout(4500) }).then((r) => (r.ok ? r.json() : null)),
-        fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams/124/roster', { signal: AbortSignal.timeout(4500) }).then((r) => (r.ok ? r.json() : null)),
-        fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/ger.dfb_pokal/teams/124/roster', { signal: AbortSignal.timeout(4500) }).then((r) => (r.ok ? r.json() : null)),
+        fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams/124/roster', { signal: AbortSignal.timeout(2200) }).then((r) => (r.ok ? r.json() : null)),
+        fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams/124/roster', { signal: AbortSignal.timeout(2200) }).then((r) => (r.ok ? r.json() : null)),
+        fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/ger.dfb_pokal/teams/124/roster', { signal: AbortSignal.timeout(2200) }).then((r) => (r.ok ? r.json() : null)),
       ]);
 
       if (blRes.status === 'fulfilled' && blRes.value?.athletes) {
@@ -471,86 +477,88 @@ export async function syncLiveBvbSquad(
   } catch {}
 
   onProgress?.(70, '[3/4] Synchronisierung aller BVB-Marktwerte & Transfermarkt-Updates...');
-  try {
+  if (isHttpOrigin) {
     try {
-      const tmSquadRes = await fetch('/api/bvb/squad/market-values');
-      if (tmSquadRes.ok) {
-        const tmSquadData = await tmSquadRes.json();
-        if (Array.isArray(tmSquadData.players) && tmSquadData.players.length > 0) {
+      try {
+        const tmSquadRes = await fetch('/api/bvb/squad/market-values', { signal: AbortSignal.timeout(2000) });
+        if (tmSquadRes.ok) {
+          const tmSquadData = await tmSquadRes.json();
+          if (Array.isArray(tmSquadData.players) && tmSquadData.players.length > 0) {
+            for (const p of updatedSquad) {
+              if (p.position === 'Trainer') continue;
+              const matchTM = tmSquadData.players.find(
+                (tm: any) =>
+                  tm.id === p.id ||
+                  tm.number === p.number ||
+                  (tm.name &&
+                    p.name &&
+                    (tm.name.toLowerCase().includes(p.name.toLowerCase()) ||
+                      p.name.toLowerCase().includes(tm.name.toLowerCase())))
+              );
+              if (matchTM) {
+                if (matchTM.marketValueRaw !== undefined && matchTM.marketValueRaw > 0) {
+                  p.marketValue = matchTM.marketValueRaw;
+                }
+                if (matchTM.marketValueFormatted) {
+                  p.marketValueFormatted = matchTM.marketValueFormatted;
+                }
+                if (matchTM.marketValueTrend) {
+                  p.marketValueTrend = matchTM.marketValueTrend;
+                }
+                if (matchTM.contractUntil) {
+                  p.contractUntil = matchTM.contractUntil;
+                }
+                if (Array.isArray(matchTM.valueHistory) && matchTM.valueHistory.length > 0) {
+                  p.valueHistory = matchTM.valueHistory;
+                }
+                if (matchTM.activeRumor) {
+                  p.activeRumor = matchTM.activeRumor;
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Full squad TM market values endpoint fallback:', e);
+      }
+
+      const tmRes = await fetch('/api/bvb/transfers', { signal: AbortSignal.timeout(2000) });
+      if (tmRes.ok) {
+        const tmData = await tmRes.json();
+        if (Array.isArray(tmData.transfers)) {
           for (const p of updatedSquad) {
             if (p.position === 'Trainer') continue;
-            const matchTM = tmSquadData.players.find(
-              (tm: any) =>
-                tm.id === p.id ||
-                tm.number === p.number ||
-                (tm.name &&
-                  p.name &&
-                  (tm.name.toLowerCase().includes(p.name.toLowerCase()) ||
-                    p.name.toLowerCase().includes(tm.name.toLowerCase())))
+            const matchDeal = tmData.transfers.find(
+              (t: any) =>
+                t.playerName &&
+                (p.name.toLowerCase().includes(t.playerName.toLowerCase()) ||
+                  t.playerName.toLowerCase().includes(p.name.toLowerCase()))
             );
-            if (matchTM) {
-              if (matchTM.marketValueRaw !== undefined && matchTM.marketValueRaw > 0) {
-                p.marketValue = matchTM.marketValueRaw;
+            if (matchDeal) {
+              if (matchDeal.contractUntil) {
+                p.contractUntil = matchDeal.contractUntil;
               }
-              if (matchTM.marketValueFormatted) {
-                p.marketValueFormatted = matchTM.marketValueFormatted;
+              if (matchDeal.marketValueRaw !== undefined && matchDeal.marketValueRaw > 0) {
+                p.marketValue = matchDeal.marketValueRaw;
               }
-              if (matchTM.marketValueTrend) {
-                p.marketValueTrend = matchTM.marketValueTrend;
+              if (matchDeal.marketValue) {
+                p.marketValueFormatted = matchDeal.marketValue;
               }
-              if (matchTM.contractUntil) {
-                p.contractUntil = matchTM.contractUntil;
+              if (matchDeal.marketValueTrend) {
+                p.marketValueTrend = matchDeal.marketValueTrend;
               }
-              if (Array.isArray(matchTM.valueHistory) && matchTM.valueHistory.length > 0) {
-                p.valueHistory = matchTM.valueHistory;
-              }
-              if (matchTM.activeRumor) {
-                p.activeRumor = matchTM.activeRumor;
+              p.activeRumor = `${matchDeal.rumorType}: ${matchDeal.probability}% Wahrscheinlichkeit (${matchDeal.currentClub})`;
+              if (matchDeal.userRating) {
+                p.transfermarktRating = matchDeal.userRating;
               }
             }
           }
         }
       }
-    } catch (e) {
-      console.warn('Full squad TM market values endpoint fallback:', e);
+      localStorage.setItem('bvb_squad_tm_synced_at', new Date().toISOString());
+    } catch (err) {
+      console.warn('Transfermarkt squad sync error:', err);
     }
-
-    const tmRes = await fetch('/api/bvb/transfers');
-    if (tmRes.ok) {
-      const tmData = await tmRes.json();
-      if (Array.isArray(tmData.transfers)) {
-        for (const p of updatedSquad) {
-          if (p.position === 'Trainer') continue;
-          const matchDeal = tmData.transfers.find(
-            (t: any) =>
-              t.playerName &&
-              (p.name.toLowerCase().includes(t.playerName.toLowerCase()) ||
-                t.playerName.toLowerCase().includes(p.name.toLowerCase()))
-          );
-          if (matchDeal) {
-            if (matchDeal.contractUntil) {
-              p.contractUntil = matchDeal.contractUntil;
-            }
-            if (matchDeal.marketValueRaw !== undefined && matchDeal.marketValueRaw > 0) {
-              p.marketValue = matchDeal.marketValueRaw;
-            }
-            if (matchDeal.marketValue) {
-              p.marketValueFormatted = matchDeal.marketValue;
-            }
-            if (matchDeal.marketValueTrend) {
-              p.marketValueTrend = matchDeal.marketValueTrend;
-            }
-            p.activeRumor = `${matchDeal.rumorType}: ${matchDeal.probability}% Wahrscheinlichkeit (${matchDeal.currentClub})`;
-            if (matchDeal.userRating) {
-              p.transfermarktRating = matchDeal.userRating;
-            }
-          }
-        }
-      }
-    }
-    localStorage.setItem('bvb_squad_tm_synced_at', new Date().toISOString());
-  } catch (err) {
-    console.warn('Transfermarkt squad sync error:', err);
   }
   await new Promise((r) => setTimeout(r, 80));
 

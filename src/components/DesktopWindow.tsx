@@ -4,6 +4,8 @@ import { OfficialBvbLogo } from './OfficialBvbLogo';
 import { NetradioPlayer } from './NetradioPlayer';
 import { SoundboardModal } from './SoundboardModal';
 import { PlayerComparisonModal } from './tabs/PlayerComparisonModal';
+import { NextMatchTopBadge } from './NextMatchTopBadge';
+import { QuickSearchModal } from './QuickSearchModal';
 import {
   subscribeToGoalAlerts,
   dismissGoalAlert,
@@ -49,6 +51,7 @@ import {
   Flame,
   Calendar,
   Volume2,
+  Search,
 } from 'lucide-react';
 
 interface DesktopWindowProps {
@@ -62,6 +65,7 @@ interface DesktopWindowProps {
   unreadNotificationsCount: number;
   onOpenInstallerModal: () => void;
   onReplaySplash: () => void;
+  onJumpToSquadPlayer?: (playerName: string) => void;
 }
 
 export const DesktopWindow: React.FC<DesktopWindowProps> = ({
@@ -75,12 +79,14 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
   unreadNotificationsCount,
   onOpenInstallerModal,
   onReplaySplash,
+  onJumpToSquadPlayer,
 }) => {
   const [isMaximized, setIsMaximized] = useState<boolean>(true);
   const [isTrayOpen, setIsTrayOpen] = useState<boolean>(false);
   const [isSoundboardOpen, setIsSoundboardOpen] = useState<boolean>(false);
   const [isComparisonOpen, setIsComparisonOpen] = useState<boolean>(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
+  const [isQuickSearchOpen, setIsQuickSearchOpen] = useState<boolean>(false);
   const [isMobileMoreSheetOpen, setIsMobileMoreSheetOpen] = useState<boolean>(false);
   const [isMobileRadioOpen, setIsMobileRadioOpen] = useState<boolean>(false);
   const [activeGoalAlert, setActiveGoalAlert] = useState<GoalAlertPayload | null>(null);
@@ -89,6 +95,18 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
     return subscribeToGoalAlerts((alert) => {
       setActiveGoalAlert(alert);
     });
+  }, []);
+
+  // Global Ctrl+K / Cmd+K Quick Search Shortcut
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsQuickSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, []);
 
   const isNativeAndroidApp = (() => {
@@ -251,8 +269,16 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
                 </div>
               </button>
 
-              {/* Mobile Quick Actions: Radio, Soundboard, Info */}
+              {/* Mobile Quick Actions: Search, Radio, Soundboard, Info */}
               <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setIsQuickSearchOpen(true)}
+                  className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-[#FDE100] border border-[#FDE100]/40 flex items-center gap-1"
+                  title="BVB-Schnellsuche öffnen"
+                >
+                  <Search className="w-4 h-4" />
+                </button>
+
                 <button
                   onClick={() => setIsMobileRadioOpen(!isMobileRadioOpen)}
                   className={`p-2 rounded-xl border transition-all flex items-center gap-1 text-xs font-bold ${
@@ -283,6 +309,15 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
                 </button>
               </div>
             </div>
+
+            {/* Live Next-Match Countdown Strip in Mobile Header */}
+            <NextMatchTopBadge
+              compact
+              onSelectMatchday={() => {
+                setActiveTab('matchday');
+                setIsMobileMoreSheetOpen(false);
+              }}
+            />
 
             {/* Collapsible Mobile Netradio Drawer */}
             {isMobileRadioOpen && (
@@ -557,6 +592,25 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
         </div>
 
         {/* Modals */}
+        <QuickSearchModal
+          isOpen={isQuickSearchOpen}
+          onClose={() => setIsQuickSearchOpen(false)}
+          onSelectTab={(tab) => {
+            setActiveTab(tab);
+            setIsMobileMoreSheetOpen(false);
+          }}
+          onJumpToSquadPlayer={(playerName) => {
+            setIsMobileMoreSheetOpen(false);
+            if (onJumpToSquadPlayer) {
+              onJumpToSquadPlayer(playerName);
+            } else {
+              setActiveTab('squad');
+            }
+          }}
+          onOpenSoundboard={() => setIsSoundboardOpen(true)}
+          onOpenInfoModal={() => setIsInfoModalOpen(true)}
+          onOpenPlayerComparison={() => setIsComparisonOpen(true)}
+        />
         <SoundboardModal
           isOpen={isSoundboardOpen}
           onClose={() => setIsSoundboardOpen(false)}
@@ -796,8 +850,22 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
             <NetradioPlayer />
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Action Buttons: Next Match Live Countdown + Quick Search (Ctrl+K) + Info + Soundboard */}
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
+            <NextMatchTopBadge onSelectMatchday={() => setActiveTab('matchday')} />
+
+            <button
+              onClick={() => setIsQuickSearchOpen(true)}
+              className="px-3 py-1.5 text-xs font-semibold text-slate-200 bg-slate-900 hover:bg-slate-800 hover:text-[#FDE100] border border-slate-700 hover:border-[#FDE100]/50 rounded-lg transition-all flex items-center gap-2 whitespace-nowrap shrink-0 cursor-pointer"
+              title="Schnellsuche nach BVB-Spielern, News & Tabs öffnen (Tastenkürzel: Strg + K)"
+            >
+              <Search className="w-3.5 h-3.5 text-[#FDE100]" />
+              <span className="font-bvb uppercase tracking-wider">Suche</span>
+              <span className="px-1.5 py-0.2 rounded bg-black/70 border border-slate-700 text-[10px] font-mono text-slate-400">
+                Strg+K
+              </span>
+            </button>
+
             <button
               onClick={() => setIsInfoModalOpen(true)}
               className="px-3 py-1.5 text-xs font-semibold text-[#FDE100] bg-slate-900 hover:bg-[#FDE100] hover:text-black border border-[#FDE100]/40 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 font-bvb uppercase tracking-wider cursor-pointer"
@@ -1046,6 +1114,21 @@ export const DesktopWindow: React.FC<DesktopWindowProps> = ({
       </main>
 
       {/* Modals */}
+      <QuickSearchModal
+        isOpen={isQuickSearchOpen}
+        onClose={() => setIsQuickSearchOpen(false)}
+        onSelectTab={setActiveTab}
+        onJumpToSquadPlayer={(playerName) => {
+          if (onJumpToSquadPlayer) {
+            onJumpToSquadPlayer(playerName);
+          } else {
+            setActiveTab('squad');
+          }
+        }}
+        onOpenSoundboard={() => setIsSoundboardOpen(true)}
+        onOpenInfoModal={() => setIsInfoModalOpen(true)}
+        onOpenPlayerComparison={() => setIsComparisonOpen(true)}
+      />
       <SoundboardModal
         isOpen={isSoundboardOpen}
         onClose={() => setIsSoundboardOpen(false)}

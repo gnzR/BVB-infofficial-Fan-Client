@@ -14,6 +14,9 @@ import {
   Info,
   Sparkles,
   Clock,
+  Trophy,
+  History,
+  ChevronRight,
 } from 'lucide-react';
 import {
   BvbNewsArticle,
@@ -23,7 +26,116 @@ import {
 } from '../../utils/bvbArchiveStore';
 import { InfoModal } from '../InfoModal';
 
-export const NewsArchiveTab: React.FC = () => {
+interface HistoricalBvbMoment {
+  id: string;
+  month: number;
+  day: number;
+  year: number;
+  dateLabel: string;
+  competition: string;
+  headline: string;
+  scoreOrBadge: string;
+  hero: string;
+  story: string;
+}
+
+const BVB_HISTORICAL_MOMENTS: HistoricalBvbMoment[] = [
+  {
+    id: 'hist-nov-klassiker-2018',
+    month: 11,
+    day: 10,
+    year: 2018,
+    dateLabel: '10. November 2018',
+    competition: 'Bundesliga · Signal Iduna Park',
+    headline: 'Magische Aufholjagd im Klassiker: BVB dreht zwei Rückstände gegen den FC Bayern!',
+    scoreOrBadge: 'BVB 3:2 FCB',
+    hero: 'Marco Reus (2x) & Paco Alcácer (73.)',
+    story:
+      'Vor 81.365 ekstatischen Fans im ausverkauften Westfalenstadion gleicht Kapitän Marco Reus zweimal aus, ehe Joker Paco Alcácer den Ball in der 73. Minute eiskalt über Manuel Neuer zum 3:2-Heimsieg lupft.',
+  },
+  {
+    id: 'hist-nov-gruendung-1909',
+    month: 12,
+    day: 19,
+    year: 1909,
+    dateLabel: '19. Dezember 1909',
+    competition: 'Vereinsgründung · Zum Wildschütz',
+    headline: 'Geburtsstunde am Borsigplatz: 18 junge Dortmunder gründen Ballspielverein Borussia 09',
+    scoreOrBadge: '19.12.1909',
+    hero: 'Franz Jacobi & die 18 Gründerväter',
+    story:
+      'Im Nebenzimmer der Gaststätte „Zum Wildschütz“ an der Oesterholzstraße 60 entsteht aus Mut und Leidenschaft für den freien Fußball unser BVB 09.',
+  },
+  {
+    id: 'hist-ucl-1997',
+    month: 5,
+    day: 28,
+    year: 1997,
+    dateLabel: '28. Mai 1997',
+    competition: 'UEFA Champions League Finale · München',
+    headline: '„Ricken! Lupfen jetzt! JAAA!“ – Borussia Dortmund krönt sich zum König Europas',
+    scoreOrBadge: 'BVB 3:1 JUV',
+    hero: 'Karl-Heinz Riedle (2x) & Lars Ricken (71.)',
+    story:
+      'Nach Riedles Doppelpack trifft der 20-jährige Dortmunder Junge Lars Ricken nur 16 Sekunden nach seiner Einwechslung aus 25 Metern über Angelo Peruzzi zum Champions-League-Triumph.',
+  },
+  {
+    id: 'hist-malaga-2013',
+    month: 4,
+    day: 9,
+    year: 2013,
+    dateLabel: '09. April 2013',
+    competition: 'Champions League Viertelfinale',
+    headline: 'Das Wunder von Dortmund: Reus (90.+1) & Santana (90.+3) lassen das Stadion beben!',
+    scoreOrBadge: 'BVB 3:2 MAL',
+    hero: 'Felipe Santana (90.+3) & Marco Reus (90.+1)',
+    story:
+      'Bis zur 91. Minute lag der BVB mit 1:2 zurück und brauchte zwei Tore. Binnen 112 Sekunden verwandelten Marco Reus und Felipe Santana das Westfalenstadion in ein Tollhaus.',
+  },
+  {
+    id: 'hist-double-2012',
+    month: 5,
+    day: 12,
+    year: 2012,
+    dateLabel: '12. Mai 2012',
+    competition: 'DFB-Pokalfinale · Olympiastadion Berlin',
+    headline: 'Historischer 5:2-Gala-Abend: Borussia Dortmund feiert das erste Double der Vereinsgeschichte',
+    scoreOrBadge: 'BVB 5:2 FCB',
+    hero: 'Robert Lewandowski (3x), Kagawa & Hummels',
+    story:
+      'Nach der Titelverteidigung mit 81 Punkten krönt die Mannschaft von Jürgen Klopp eine Jahrhundert-Saison mit einem denkwürdigen 5:2-Finalsieg im Berliner Olympiastadion.',
+  },
+  {
+    id: 'hist-glasgow-1966',
+    month: 5,
+    day: 5,
+    year: 1966,
+    dateLabel: '05. Mai 1966',
+    competition: 'Europapokal der Pokalsieger · Glasgow',
+    headline: 'Reinhard „Stan“ Libuda schreibt Geschichte: Erster deutscher Europapokalsieger!',
+    scoreOrBadge: 'BVB 2:1 LIV',
+    hero: 'Siggi Held & Stan Libuda (107.)',
+    story:
+      'Im strömenden Regen des Hampden Parks in Glasgow trifft Stan Libuda in der 107. Minute der Verlängerung per Bogenlampe gegen den FC Liverpool.',
+  },
+  {
+    id: 'hist-paris-2024',
+    month: 5,
+    day: 7,
+    year: 2024,
+    dateLabel: '07. Mai 2024',
+    competition: 'Champions League Halbfinale · Paris',
+    headline: 'Kopfball-Künstler Mats Hummels und 4x Aluminium: BVB stürmt nach Wembley!',
+    scoreOrBadge: 'PSG 0:1 BVB',
+    hero: 'Mats Hummels (50.) & Gregor Kobel',
+    story:
+      'Mit leidenschaftlicher Abwehrschlacht und Hummels’ wuchtigem Kopfballtor nach Brandt-Ecke zieht Borussia Dortmund ohne Gegentor ins Champions-League-Finale ein.',
+  },
+];
+
+export const NewsArchiveTab: React.FC<{ onNavigateTab?: (tab: string) => void }> = ({
+  onNavigateTab,
+}) => {
   const [articles, setArticles] = useState<BvbNewsArticle[]>([]);
   const [sourceMode, setSourceMode] = useState<'all' | 'official'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -36,6 +148,18 @@ export const NewsArchiveTab: React.FC = () => {
   const [newlyAddedCount, setNewlyAddedCount] = useState<number | null>(null);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
   const [cooldownRemainingMins, setCooldownRemainingMins] = useState<number>(15);
+
+  // Pick initial historical milestone matching current month/day or day-of-year index
+  const [momentIndex, setMomentIndex] = useState<number>(() => {
+    const today = new Date();
+    const curMonth = today.getMonth() + 1;
+    const matchIdx = BVB_HISTORICAL_MOMENTS.findIndex((m) => m.month === curMonth);
+    if (matchIdx >= 0) return matchIdx;
+    return today.getDate() % BVB_HISTORICAL_MOMENTS.length;
+  });
+
+  const currentMoment = BVB_HISTORICAL_MOMENTS[momentIndex] || BVB_HISTORICAL_MOMENTS[0];
+  const yearsAgo = Math.max(1, new Date().getFullYear() - currentMoment.year);
 
   const loadLocalArchive = async () => {
     const list = await get60DayBvbArticles();
@@ -320,6 +444,62 @@ export const NewsArchiveTab: React.FC = () => {
               <span className="text-slate-500 text-[10px] block uppercase">Entwickler</span>
               <span className="font-bold text-[#FDE100] text-sm">w33derlich & Dobby</span>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* IDEE 2: „HEUTE VOR X JAHREN BEIM BVB“ – TÄGLICHER HISTORISCHER RÜCKBLICK */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#171409] via-[#12141c] to-[#0d0f15] border border-[#FDE100]/40 p-5 shadow-xl">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div className="space-y-2 max-w-4xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-md bg-[#FDE100] text-black font-bvb font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                <History className="w-3.5 h-3.5" />
+                <span>Vor {yearsAgo} Jahren beim BVB · {currentMoment.dateLabel}</span>
+              </span>
+              <span className="px-2 py-0.5 rounded-md bg-black/70 border border-[#FDE100]/40 text-[#FDE100] font-mono text-xs font-extrabold">
+                {currentMoment.scoreOrBadge}
+              </span>
+              <span className="text-xs font-mono text-slate-400">
+                {currentMoment.competition}
+              </span>
+            </div>
+
+            <h3 className="text-base sm:text-lg font-black text-white font-bvb uppercase tracking-wide leading-snug">
+              {currentMoment.headline}
+            </h3>
+
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              {currentMoment.story}
+            </p>
+
+            <div className="flex items-center gap-2 text-xs text-amber-300/90 font-mono pt-0.5">
+              <Trophy className="w-3.5 h-3.5 text-[#FDE100] shrink-0" />
+              <span>Matchwinner & Helden: <strong className="text-white">{currentMoment.hero}</strong></span>
+            </div>
+          </div>
+
+          <div className="flex sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end gap-2 shrink-0 w-full lg:w-auto">
+            <button
+              onClick={() =>
+                setMomentIndex((prev) => (prev + 1) % BVB_HISTORICAL_MOMENTS.length)
+              }
+              className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-[#FDE100] border border-[#FDE100]/40 font-bvb font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              title="Weiteren historischen BVB-Moment anzeigen"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Nächster Rückblick ({momentIndex + 1}/{BVB_HISTORICAL_MOMENTS.length})</span>
+            </button>
+
+            {onNavigateTab && (
+              <button
+                onClick={() => onNavigateTab('timemachine')}
+                className="px-3.5 py-2 rounded-xl bg-[#FDE100]/15 hover:bg-[#FDE100] text-[#FDE100] hover:text-black border border-[#FDE100]/40 font-bvb font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer"
+              >
+                <span>Zur BVB-Zeitmaschine</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Database, HardDrive, CheckCircle2, ArrowDownToLine } from 'lucide-react';
 import { sync30DayBvbArchive } from '../utils/bvbArchiveStore';
 import { syncLiveBvbSquad } from '../utils/squadStore';
@@ -42,6 +42,23 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete, onDetectedUpdate }
   const [transferredMb, setTransferredMb] = useState<string>('0.0');
   const [spinAngle, setSpinAngle] = useState<number>(0);
 
+  // Store callbacks in refs so parent re-renders NEVER cancel or restart the Splash sync effect
+  const onCompleteRef = useRef(onComplete);
+  const onDetectedUpdateRef = useRef(onDetectedUpdate);
+  const hasStartedSyncRef = useRef<boolean>(false);
+  const hasFinishedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+    onDetectedUpdateRef.current = onDetectedUpdate;
+  }, [onComplete, onDetectedUpdate]);
+
+  const finishSplashOnce = () => {
+    if (hasFinishedRef.current) return;
+    hasFinishedRef.current = true;
+    onCompleteRef.current();
+  };
+
   // Smooth 60-FPS 3D Y-axis self-rotation for the official BVB 09 crest
   useEffect(() => {
     let rafId: number;
@@ -60,15 +77,29 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete, onDetectedUpdate }
   }, []);
 
   useEffect(() => {
-    let isCancelled = false;
+    // Strictly execute only once per mount — immune to parent state updates
+    if (hasStartedSyncRef.current) return;
+    hasStartedSyncRef.current = true;
+
+    let isUnmounted = false;
     const startTime = performance.now();
-    const MIN_SPLASH_MS = 2600; // Ensure user sees the 3D spinning BVB crest for at least 2.6s
+    const MIN_SPLASH_MS = 2400; // Show 3D spinning BVB crest for ~2.4s
+    const MAX_SPLASH_WATCHDOG_MS = 4000; // Hard 4.0s guarantee so Splash can NEVER hang at 50%
+
+    const watchdogTimer = window.setTimeout(() => {
+      if (!isUnmounted && !hasFinishedRef.current) {
+        setProgress(100);
+        setCurrentStep('[✓] BVB 09 Datenbank bereit. Starte Hauptfenster...');
+        setTransferredMb('4.8');
+        finishSplashOnce();
+      }
+    }, MAX_SPLASH_WATCHDOG_MS);
 
     async function runSync() {
       try {
         // Step 1: Sync BVB News Archive (0% -> 45%)
         const syncRes = await sync30DayBvbArchive((pct, step) => {
-          if (!isCancelled) {
+          if (!isUnmounted && !hasFinishedRef.current) {
             const mappedPct = Math.round((pct / 100) * 45);
             setProgress(mappedPct);
             setCurrentStep(step);
@@ -78,9 +109,9 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete, onDetectedUpdate }
         const articlesList = Array.isArray(syncRes) ? syncRes : syncRes?.articles || [];
 
         // Step 2: Live Sync BVB Squad Roster (45% -> 80%)
-        if (!isCancelled) {
+        if (!isUnmounted && !hasFinishedRef.current) {
           await syncLiveBvbSquad((pct, step) => {
-            if (!isCancelled) {
+            if (!isUnmounted && !hasFinishedRef.current) {
               const mappedPct = 45 + Math.round((pct / 100) * 35);
               setProgress(mappedPct);
               setCurrentStep(step);
@@ -90,7 +121,7 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete, onDetectedUpdate }
         }
 
         // Step 3: Silent Background GitHub Update Check during Splash (80% -> 95%)
-        if (!isCancelled) {
+        if (!isUnmounted && !hasFinishedRef.current) {
           setProgress(88);
           setCurrentStep('Prüfe im Hintergrund auf neue GitHub-Version...');
           setTransferredMb('4.4');
@@ -98,7 +129,7 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete, onDetectedUpdate }
           let checkedViaApi = false;
           try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 2400);
+            const timeoutId = setTimeout(() => controller.abort(), 1800);
             const apiRes = await fetch(
               `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents/version.json?ref=main&_=${Date.now()}`,
               {
@@ -112,10 +143,10 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete, onDetectedUpdate }
               const meta = await apiRes.json();
               if (meta && typeof meta.content === 'string') {
                 const data = safeDecodeGitHubBase64Json<StartupRemoteVersionPayload>(meta.content);
-                if (!isCancelled && data && typeof data.version === 'string') {
+                if (!isUnmounted && data && typeof data.version === 'string') {
                   checkedViaApi = true;
-                  if (compareVer(data.version, CURRENT_APP_VERSION) > 0 && onDetectedUpdate) {
-                    onDetectedUpdate(data);
+                  if (compareVer(data.version, CURRENT_APP_VERSION) > 0 && onDetectedUpdateRef.current) {
+                    onDetectedUpdateRef.current(data);
                   }
                 }
               }
@@ -124,7 +155,7 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete, onDetectedUpdate }
             // Fallback to raw URLs
           }
 
-          if (!checkedViaApi) {
+          if (!checkedViaApi && !isUnmounted && !hasFinishedRef.current) {
             const cacheBust = `?t=${Date.now()}`;
             const candidateUrls = [
               `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/version.json${cacheBust}`,
@@ -134,14 +165,14 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete, onDetectedUpdate }
             for (const url of candidateUrls) {
               try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 2400);
+                const timeoutId = setTimeout(() => controller.abort(), 1600);
                 const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
                 clearTimeout(timeoutId);
                 if (res.ok) {
                   const data: StartupRemoteVersionPayload = await res.json();
-                  if (!isCancelled && data && typeof data.version === 'string') {
-                    if (compareVer(data.version, CURRENT_APP_VERSION) > 0 && onDetectedUpdate) {
-                      onDetectedUpdate(data);
+                  if (!isUnmounted && data && typeof data.version === 'string') {
+                    if (compareVer(data.version, CURRENT_APP_VERSION) > 0 && onDetectedUpdateRef.current) {
+                      onDetectedUpdateRef.current(data);
                     }
                     break;
                   }
@@ -153,24 +184,24 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete, onDetectedUpdate }
           }
         }
 
-        if (!isCancelled) {
+        if (!isUnmounted && !hasFinishedRef.current) {
           setProgress(100);
           setCurrentStep(`[✓] ${articlesList.length} BVB-News & Live-Kaderdaten im SQLite/IndexedDB Speicher aktualisiert!`);
           setTransferredMb('4.8');
           const elapsed = performance.now() - startTime;
-          const remaining = Math.max(500, MIN_SPLASH_MS - elapsed);
-          setTimeout(() => {
-            if (!isCancelled) onComplete();
+          const remaining = Math.max(350, MIN_SPLASH_MS - elapsed);
+          window.setTimeout(() => {
+            if (!isUnmounted) finishSplashOnce();
           }, remaining);
         }
       } catch {
-        if (!isCancelled) {
+        if (!isUnmounted && !hasFinishedRef.current) {
           setProgress(100);
           setCurrentStep('[✓] BVB 09 Datenbank geladen. Starte Benutzeroberfläche...');
           const elapsed = performance.now() - startTime;
-          const remaining = Math.max(400, MIN_SPLASH_MS - elapsed);
-          setTimeout(() => {
-            if (!isCancelled) onComplete();
+          const remaining = Math.max(300, MIN_SPLASH_MS - elapsed);
+          window.setTimeout(() => {
+            if (!isUnmounted) finishSplashOnce();
           }, remaining);
         }
       }
@@ -179,13 +210,14 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete, onDetectedUpdate }
     runSync();
 
     return () => {
-      isCancelled = true;
+      isUnmounted = true;
+      window.clearTimeout(watchdogTimer);
     };
-  }, [onComplete, onDetectedUpdate]);
+  }, []);
 
   return (
     <div
-      onClick={onComplete}
+      onClick={finishSplashOnce}
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#07080a] text-slate-100 cursor-pointer select-none p-6 font-sans overflow-hidden"
       title="Klicken zum sofortigen Überspringen"
     >

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Splash3D } from './components/Splash3D';
 import { DesktopWindow } from './components/DesktopWindow';
 import { LiveTickerTab } from './components/tabs/LiveTickerTab';
@@ -75,6 +75,10 @@ export default function App() {
   const [isStartupUpdateModalOpen, setIsStartupUpdateModalOpen] = useState<boolean>(false);
   const [startupUpdateDismissed, setStartupUpdateDismissed] = useState<boolean>(false);
 
+  const handleDetectedStartupUpdate = useCallback((remoteData: StartupRemoteVersionPayload) => {
+    setStartupRemoteUpdate((prev) => (prev?.version === remoteData.version ? prev : remoteData));
+  }, []);
+
   useEffect(() => {
     try {
       const notice = localStorage.getItem('bvb_just_updated_notice');
@@ -88,15 +92,18 @@ export default function App() {
     }
   }, []);
 
-  // Option 1: Silent Background GitHub Version Check on App Startup
+  // Option 1 Fallback Check: Only runs AFTER Splash finishes if Splash was skipped early by user click
   useEffect(() => {
+    if (showSplash || startupRemoteUpdate || startupUpdateDismissed) {
+      return;
+    }
+
     let isCancelled = false;
 
-    async function checkGitHubOnStartup() {
-      // 1. Primary: Uncached GitHub Contents API (0s CDN lag)
+    async function checkGitHubAfterSkippedSplash() {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 4500);
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
         const apiRes = await fetch(
           `https://api.github.com/repos/gnzR/BVB-infofficial-Fan-Client/contents/version.json?ref=main&_=${Date.now()}`,
           {
@@ -112,7 +119,7 @@ export default function App() {
             const data = safeDecodeGitHubBase64Json<StartupRemoteVersionPayload>(meta.content);
             if (!isCancelled && data && typeof data.version === 'string') {
               if (compareVersions(data.version, CURRENT_APP_VERSION) > 0) {
-                setStartupRemoteUpdate(data);
+                handleDetectedStartupUpdate(data);
               }
               return;
             }
@@ -131,14 +138,14 @@ export default function App() {
       for (const url of candidateUrls) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 4500);
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
           const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
           clearTimeout(timeoutId);
           if (res.ok) {
             const data: StartupRemoteVersionPayload = await res.json();
             if (!isCancelled && data && typeof data.version === 'string') {
               if (compareVersions(data.version, CURRENT_APP_VERSION) > 0) {
-                setStartupRemoteUpdate(data);
+                handleDetectedStartupUpdate(data);
               }
               return;
             }
@@ -149,11 +156,11 @@ export default function App() {
       }
     }
 
-    checkGitHubOnStartup();
+    checkGitHubAfterSkippedSplash();
     return () => {
       isCancelled = true;
     };
-  }, []);
+  }, [showSplash, startupRemoteUpdate, startupUpdateDismissed, handleDetectedStartupUpdate]);
 
   // Automatically open the Option 1 Startup Update Modal as soon as the 3D Splash finishes
   useEffect(() => {
@@ -213,13 +220,13 @@ export default function App() {
     };
   }, []);
 
-  const handleSplashComplete = () => {
+  const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
-  };
+  }, []);
 
-  const handleReplaySplash = () => {
+  const handleReplaySplash = useCallback(() => {
     setShowSplash(true);
-  };
+  }, []);
 
   const handleJumpToSquadPlayer = (playerName: string) => {
     setSelectedSquadPlayerName(playerName);
@@ -232,9 +239,7 @@ export default function App() {
       {showSplash && (
         <Splash3D
           onComplete={handleSplashComplete}
-          onDetectedUpdate={(remoteData) => {
-            setStartupRemoteUpdate(remoteData);
-          }}
+          onDetectedUpdate={handleDetectedStartupUpdate}
         />
       )}
 
@@ -259,6 +264,7 @@ export default function App() {
         unreadNotificationsCount={unreadCount}
         onOpenInstallerModal={() => setIsInstallerModalOpen(true)}
         onReplaySplash={handleReplaySplash}
+        onJumpToSquadPlayer={handleJumpToSquadPlayer}
       >
         {justUpdatedNotice && (
           <div className="mb-4 p-3.5 rounded-xl bg-gradient-to-r from-emerald-950 via-[#111318] to-black border-2 border-emerald-500/70 text-emerald-300 font-sans text-xs flex items-center justify-between gap-3 shadow-xl shadow-emerald-500/20 animate-fade-in">
@@ -292,7 +298,7 @@ export default function App() {
             onClearInitialPlayer={() => setSelectedSquadPlayerName(null)}
           />
         )}
-        {activeTab === 'news' && <NewsArchiveTab />}
+        {activeTab === 'news' && <NewsArchiveTab onNavigateTab={setActiveTab} />}
         {activeTab === 'timemachine' && <BvbTimeMachineTab />}
         {activeTab === 'chants' && <BvbChantStudioTab />}
         {activeTab === 'games' && <BvbGamesTab />}
