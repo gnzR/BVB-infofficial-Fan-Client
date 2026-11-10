@@ -1963,29 +1963,17 @@ cat << 'EOF_LAUNCH' | sudo tee /usr/local/bin/bvb-desktop > /dev/null
 APP_DIR="$HOME/.local/share/bvb-desktop"
 export QT_QPA_PLATFORM="wayland;xcb"
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
-export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu-sandbox --in-process-gpu --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --disable-gpu-memory-buffer-video-frames --allow-file-access-from-files --disable-web-security"
+export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu-sandbox --in-process-gpu --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --disable-gpu-memory-buffer-video-frames --allow-file-access-from-files --allow-universal-access-from-files"
 export WEBKIT_DISABLE_DMABUF_RENDERER=1
 export WEBKIT_DISABLE_COMPOSITING_MODE=1
 trap 'kill $(jobs -p) 2>/dev/null; exit 0' SIGINT SIGTERM
 
-# Engine 1: Nativer Qt6 WebEngine Runner
 if command -v python3 &>/dev/null && [ -f "$APP_DIR/qt_runner.py" ]; then
-    python3 "$APP_DIR/qt_runner.py" "$@"
-    STATUS=$?
-    if [ $STATUS -eq 0 ] || [ $STATUS -eq 130 ] || [ $STATUS -eq 2 ]; then
-        exit 0
-    fi
+    exec python3 "$APP_DIR/qt_runner.py" "$@"
 fi
 
-# Engine 2: Cachy-Browser / Chromium / Brave / Edge im isolierten App-Fenster (Serverless BVB09-App.html)
 TARGET_HTML="$APP_DIR/BVB09-App.html"
 [ ! -f "$TARGET_HTML" ] && TARGET_HTML="$APP_DIR/app/index.html"
-
-for b in cachy-browser chromium google-chrome-stable google-chrome brave-browser brave microsoft-edge-stable; do
-    if command -v "$b" &>/dev/null; then
-        exec "$b" --app="file://$TARGET_HTML?installed=true" --window-size=1420,920 --disable-dev-shm-usage --allow-file-access-from-files --disable-web-security --user-data-dir="$HOME/.local/share/bvb-desktop/browser-profile" "$@"
-    fi
-done
 
 if command -v xdg-open &>/dev/null; then
     exec xdg-open "file://$TARGET_HTML"
@@ -2086,14 +2074,15 @@ def is_safe_external_url(qurl):
     return any(host == d or host.endswith("." + d) for d in ALLOWED_DOMAINS)
 
 class ExternalWebEnginePage(QWebEnginePage):
-    _held_pages = []
     def acceptNavigationRequest(self, url, navType, isMainFrame):
         url_str = url.toString()
         if url_str.startswith("file://") or url_str.startswith("data:") or url_str.startswith("blob:"):
             return super().acceptNavigationRequest(url, navType, isMainFrame)
-        if is_safe_external_url(url):
+        # ONLY open in external default browser if explicitly clicked by user (NavigationTypeLinkClicked)
+        if navType == QWebEnginePage.NavigationType.NavigationTypeLinkClicked and is_safe_external_url(url):
             QDesktopServices.openUrl(url)
-        return False
+            return False
+        return super().acceptNavigationRequest(url, navType, isMainFrame)
     def createWindow(self, windowType):
         temp_page = ExternalWebEnginePage(self.profile(), self)
         ExternalWebEnginePage._held_pages.append(temp_page)
@@ -2116,7 +2105,7 @@ settings = view.settings()
 settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
 settings.setAttribute(QWebEngineSettings.WebAttribute.LocalStorageEnabled, True)
 settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, False)
+settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
 settings.setAttribute(QWebEngineSettings.WebAttribute.PlaybackRequiresUserGesture, False)
 
 view.load(QUrl.fromLocalFile(serverless_html))

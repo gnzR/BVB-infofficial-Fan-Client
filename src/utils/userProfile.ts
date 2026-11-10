@@ -13,6 +13,13 @@ export interface UserBVBProfile {
     ticker: boolean;
   };
   customFeedKeywords: string[];
+  // Digital Member Card & Fan Rank fields (Idee 1)
+  memberNumber: string;
+  memberSince: string;
+  fanRank: string;
+  favoriteBlock: string;
+  // Achievements & Trophy Cabinet (Idee 3)
+  unlockedBadgeIds: string[];
 }
 
 const PROFILE_KEY = 'bvb_desktop_user_profile_v1';
@@ -32,6 +39,11 @@ export const DEFAULT_USER_PROFILE: UserBVBProfile = {
     ticker: true,
   },
   customFeedKeywords: ['Guirassy', 'Schlotterbeck', 'Gittens', 'Gerücht', 'Champions League'],
+  memberNumber: 'BVB-09-81365',
+  memberSince: '19.12.1909',
+  fanRank: 'Südtribünen-Legende',
+  favoriteBlock: 'Block 13 (Südtribüne)',
+  unlockedBadgeIds: ['echte-liebe-1909', 'suedtribuene-legende', 'gesangssicher', 'derby-held', 'archivar-09', 'app-pwa-pioneer'],
 };
 
 export function getUserProfile(): UserBVBProfile {
@@ -41,7 +53,16 @@ export function getUserProfile(): UserBVBProfile {
       saveUserProfile(DEFAULT_USER_PROFILE);
       return DEFAULT_USER_PROFILE;
     }
-    return JSON.parse(data);
+    const parsed = JSON.parse(data);
+    return {
+      ...DEFAULT_USER_PROFILE,
+      ...parsed,
+      notifyCategories: {
+        ...DEFAULT_USER_PROFILE.notifyCategories,
+        ...(parsed.notifyCategories || {}),
+      },
+      unlockedBadgeIds: parsed.unlockedBadgeIds || DEFAULT_USER_PROFILE.unlockedBadgeIds,
+    };
   } catch (e) {
     console.warn("User profile load error:", e);
     return DEFAULT_USER_PROFILE;
@@ -55,3 +76,4 @@ export function saveUserProfile(profile: UserBVBProfile) {
     console.warn("User profile save error:", e);
   }
 }
+

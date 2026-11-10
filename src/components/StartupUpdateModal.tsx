@@ -17,7 +17,9 @@ import { CURRENT_APP_VERSION, getVerifiedGitHubReleaseUrl } from './InfoModal';
 
 function openExternalUrl(url: string) {
   try {
-    fetch(`/api/open-external?url=${encodeURIComponent(url)}`).catch(() => {});
+    if (typeof window !== 'undefined' && window.location.protocol !== 'file:') {
+      fetch(`/api/open-external?url=${encodeURIComponent(url)}`, { method: 'POST' }).catch(() => {});
+    }
   } catch {
     // ignore
   }
@@ -145,27 +147,10 @@ export const StartupUpdateModal: React.FC<StartupUpdateModalProps> = ({
         // Ignore storage errors
       }
 
-      // Android: Directly invoke Android System Package Installer via intent:// + APK download
+      // Android special handling: Stream APK directly or use verified HTTPS GitHub release URL
       if (selectedPlatform === 'android') {
-        setProgressPct(55);
-        setStatusText(`2/3: Übergebe ${fileName} an den Android Paket-Installer...`);
-
-        const cleanPath = githubRawUrl.replace(/^https?:\/\//, '');
-        const intentUri = `intent://${cleanPath}#Intent;action=android.intent.action.VIEW;type=application/vnd.android.package-archive;end`;
-        setAndroidIntentUrl(intentUri);
-
-        setProgressPct(100);
-        setStatusText(
-          `📲 Android Paket-Manager gestartet! Bitte tippe im Systemdialog auf „Installieren“ / „Aktualisieren“.`
-        );
-
-        try {
-          window.location.href = intentUri;
-        } catch {
-          window.location.href = githubRawUrl;
-        }
-        setIsUpdating(false);
-        return;
+        setProgressPct(40);
+        setStatusText(`2/3: Lade Android-Paket (${fileName}) herunter...`);
       }
 
       // Windows 10/11 & CachyOS/Linux: Stream package with live progress bar + auto-update reload

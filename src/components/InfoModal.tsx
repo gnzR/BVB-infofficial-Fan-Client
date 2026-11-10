@@ -24,7 +24,9 @@ import { OfficialBvbLogo } from './OfficialBvbLogo';
 
 function openExternalUrl(url: string) {
   try {
-    fetch(`/api/open-external?url=${encodeURIComponent(url)}`).catch(() => {});
+    if (typeof window !== 'undefined' && window.location.protocol !== 'file:') {
+      fetch(`/api/open-external?url=${encodeURIComponent(url)}`, { method: 'POST' }).catch(() => {});
+    }
   } catch {
     // ignore
   }
@@ -478,20 +480,8 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
 
       setDownloadProgressPct(100);
       if (targetPlatform === 'android') {
-        const apkUrl = githubRawUrl || 'https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Android-Client.apk';
-        const cleanPath = apkUrl.replace(/^https?:\/\//, '');
-        const intentUrl = `intent://${cleanPath}#Intent;action=android.intent.action.VIEW;type=application/vnd.android.package-archive;end`;
-        setAndroidPendingApkIntent(intentUrl);
-
-        // Immediately launch Android System Package Installer
-        try {
-          window.location.href = intentUrl;
-        } catch {
-          window.location.href = apkUrl;
-        }
-
         setDownloadStatusText(
-          `📲 ${fileName} geladen! Android-Installationsdialog wird geöffnet – bitte tippe im Systemfenster auf „Installieren“!`
+          `📲 ${fileName} geladen! Die APK-Datei wurde in deinen Android-Downloadordner geladen.`
         );
       } else if (targetPlatform === 'linux') {
         setDownloadStatusText(
@@ -512,16 +502,6 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
   };
 
   function triggerBrowserFileDownload(blob: Blob, filename: string, mimeType: string) {
-    if (filename.endsWith('.apk') || mimeType === 'application/vnd.android.package-archive') {
-      const directApkUrl = 'https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Android-Client.apk';
-      const cleanPath = directApkUrl.replace(/^https?:\/\//, '');
-      const intentUrl = `intent://${cleanPath}#Intent;action=android.intent.action.VIEW;type=application/vnd.android.package-archive;end`;
-      try {
-        window.location.href = intentUrl;
-      } catch {
-        window.location.href = directApkUrl;
-      }
-    }
     const typedBlob = new Blob([blob], { type: mimeType });
     const url = URL.createObjectURL(typedBlob);
     const a = document.createElement('a');

@@ -489,80 +489,71 @@ echo "[✓] BVB 09 Desktop Client deinstalliert!"
 }
 
 export function downloadWindowsExeInstaller() {
-  const serverEndpoint = '/api/download/BVB-09-Windows-Setup.exe';
+  const isFileOrigin = typeof window !== 'undefined' && window.location.protocol === 'file:';
+  const targetUrl = isFileOrigin
+    ? 'https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Windows-Setup.exe'
+    : '/api/download/BVB-09-Windows-Setup.exe';
   const a = document.createElement('a');
-  a.href = serverEndpoint;
+  a.href = targetUrl;
   a.download = 'BVB-09-Windows-Setup.exe';
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
 }
 
 export function downloadWindowsDirectExe() {
-  const serverEndpoint = '/api/download/BVB09.exe';
-  const a = document.createElement('a');
-  a.href = serverEndpoint;
-  a.download = 'BVB09.exe';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  downloadWindowsExeInstaller();
 }
 
 export function downloadWindowsPortableZip() {
-  const serverEndpoint = '/api/download/BVB-09-Windows-Portable.zip';
+  const isFileOrigin = typeof window !== 'undefined' && window.location.protocol === 'file:';
+  const targetUrl = isFileOrigin
+    ? 'https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Windows-Portable.zip'
+    : '/api/download/BVB-09-Windows-Portable.zip';
   const a = document.createElement('a');
-  a.href = serverEndpoint;
+  a.href = targetUrl;
   a.download = 'BVB-09-Windows-Portable.zip';
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
 }
 
 export function downloadWindowsServerlessHtml() {
-  const serverEndpoint = '/api/download/BVB09-App.html';
+  const isFileOrigin = typeof window !== 'undefined' && window.location.protocol === 'file:';
+  const targetUrl = isFileOrigin
+    ? 'https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB09-App.html'
+    : '/api/download/BVB09-App.html';
   const a = document.createElement('a');
-  a.href = serverEndpoint;
+  a.href = targetUrl;
   a.download = 'BVB09-App.html';
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
 }
 
 export function downloadWindowsUninstaller() {
-  const serverEndpoint = '/api/download/BVB-09-Windows-Portable.zip';
-  const a = document.createElement('a');
-  a.href = serverEndpoint;
-  a.download = 'BVB-09-Windows-Portable.zip';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  downloadWindowsPortableZip();
 }
 
 export function downloadAndroidApk() {
-  const directUrl = typeof window !== 'undefined' && window.location.protocol === 'file:'
+  const isFileOrigin = typeof window !== 'undefined' && window.location.protocol === 'file:';
+  const targetUrl = isFileOrigin
     ? 'https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Android-Client.apk'
     : '/api/download/BVB-09-Android-Client.apk';
-  const fullRemoteUrl = 'https://raw.githubusercontent.com/gnzR/BVB-infofficial-Fan-Client/main/releases/BVB-09-Android-Client.apk';
-  const intentUrl = `intent://${fullRemoteUrl.replace(/^https?:\/\//, '')}#Intent;action=android.intent.action.VIEW;type=application/vnd.android.package-archive;end`;
-
-  // 1. Immediately launch Android Package Installer Dialog via Intent URI scheme
-  try {
-    window.location.href = intentUrl;
-  } catch {
-    window.location.href = directUrl;
-  }
-
-  // 2. Fallback direct download link
-  setTimeout(() => {
-    try {
-      const a = document.createElement('a');
-      a.href = directUrl;
-      a.download = 'BVB-09-Android-Client.apk';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } catch {}
-  }, 1000);
+  const a = document.createElement('a');
+  a.href = targetUrl;
+  a.download = 'BVB-09-Android-Client.apk';
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 export const CACHYOS_INSTALLER_SCRIPT = `#!/usr/bin/env bash
