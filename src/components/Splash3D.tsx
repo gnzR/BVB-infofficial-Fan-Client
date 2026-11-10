@@ -3,7 +3,7 @@ import { Database, HardDrive, CheckCircle2, ArrowDownToLine } from 'lucide-react
 import { sync30DayBvbArchive } from '../utils/bvbArchiveStore';
 import { syncLiveBvbSquad } from '../utils/squadStore';
 import { OfficialBvbLogo } from './OfficialBvbLogo';
-import { CURRENT_APP_VERSION } from './InfoModal';
+import { CURRENT_APP_VERSION, safeDecodeGitHubBase64Json } from './InfoModal';
 import { StartupRemoteVersionPayload } from './StartupUpdateModal';
 
 interface SplashProps {
@@ -111,8 +111,7 @@ export const Splash3D: React.FC<SplashProps> = ({ onComplete, onDetectedUpdate }
             if (apiRes.ok) {
               const meta = await apiRes.json();
               if (meta && typeof meta.content === 'string') {
-                const decodedJson = decodeURIComponent(escape(window.atob(meta.content.replace(/\s/g, ''))));
-                const data: StartupRemoteVersionPayload = JSON.parse(decodedJson);
+                const data = safeDecodeGitHubBase64Json<StartupRemoteVersionPayload>(meta.content);
                 if (!isCancelled && data && typeof data.version === 'string') {
                   checkedViaApi = true;
                   if (compareVer(data.version, CURRENT_APP_VERSION) > 0 && onDetectedUpdate) {

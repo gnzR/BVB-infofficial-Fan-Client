@@ -16,7 +16,7 @@ import { MatchdayHubTab } from './components/tabs/MatchdayHubTab';
 import { InstallerGeneratorModal } from './components/InstallerGeneratorModal';
 import { SchalkerEasterEggModal } from './components/SchalkerEasterEggModal';
 import { StartupUpdateModal, StartupRemoteVersionPayload } from './components/StartupUpdateModal';
-import { CURRENT_APP_VERSION } from './components/InfoModal';
+import { CURRENT_APP_VERSION, safeDecodeGitHubBase64Json } from './components/InfoModal';
 import { getUserProfile, UserBVBProfile } from './utils/userProfile';
 import { getNotificationArchive } from './utils/notificationSystem';
 import { sync60DayBvbArchive } from './utils/bvbArchiveStore';
@@ -109,8 +109,7 @@ export default function App() {
         if (apiRes.ok) {
           const meta = await apiRes.json();
           if (meta && typeof meta.content === 'string') {
-            const decodedJson = decodeURIComponent(escape(window.atob(meta.content.replace(/\s/g, ''))));
-            const data: StartupRemoteVersionPayload = JSON.parse(decodedJson);
+            const data = safeDecodeGitHubBase64Json<StartupRemoteVersionPayload>(meta.content);
             if (!isCancelled && data && typeof data.version === 'string') {
               if (compareVersions(data.version, CURRENT_APP_VERSION) > 0) {
                 setStartupRemoteUpdate(data);

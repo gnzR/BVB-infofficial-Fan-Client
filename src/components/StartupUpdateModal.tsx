@@ -13,7 +13,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { OfficialBvbLogo } from './OfficialBvbLogo';
-import { CURRENT_APP_VERSION } from './InfoModal';
+import { CURRENT_APP_VERSION, getVerifiedGitHubReleaseUrl } from './InfoModal';
 
 function openExternalUrl(url: string) {
   try {
@@ -96,31 +96,35 @@ export const StartupUpdateModal: React.FC<StartupUpdateModalProps> = ({
 
     let fileName = 'BVB-09-Windows-Setup.exe';
     let mimeType = 'application/octet-stream';
-    let githubRawUrl =
-      remoteInfo.downloads?.windowsSetupExe ||
-      `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/BVB-09-Windows-Setup.exe`;
+    let githubRawUrl = getVerifiedGitHubReleaseUrl(
+      remoteInfo.downloads?.windowsSetupExe,
+      `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/BVB-09-Windows-Setup.exe`
+    );
     let localApiFallback = '/api/download/BVB-09-Windows-Setup.exe';
 
     if (selectedPlatform === 'android') {
       fileName = 'BVB-09-Android-Client.apk';
       mimeType = 'application/vnd.android.package-archive';
-      githubRawUrl =
-        remoteInfo.downloads?.androidApk ||
-        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/BVB-09-Android-Client.apk`;
+      githubRawUrl = getVerifiedGitHubReleaseUrl(
+        remoteInfo.downloads?.androidApk,
+        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/BVB-09-Android-Client.apk`
+      );
       localApiFallback = '/api/download/BVB-09-Android-Client.apk';
     } else if (selectedPlatform === 'linux') {
       fileName = 'bvb-09-cachyos-package.tar.gz';
       mimeType = 'application/gzip';
-      githubRawUrl =
-        remoteInfo.downloads?.cachyosTarGz ||
-        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/bvb-09-cachyos-package.tar.gz`;
+      githubRawUrl = getVerifiedGitHubReleaseUrl(
+        remoteInfo.downloads?.cachyosTarGz,
+        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/bvb-09-cachyos-package.tar.gz`
+      );
       localApiFallback = '/api/download/bvb-09-cachyos-package.tar.gz';
     } else if (!preferWindowsExe) {
       fileName = 'BVB-09-Windows-Portable.zip';
       mimeType = 'application/zip';
-      githubRawUrl =
-        remoteInfo.downloads?.windowsPortableZip ||
-        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/BVB-09-Windows-Portable.zip`;
+      githubRawUrl = getVerifiedGitHubReleaseUrl(
+        remoteInfo.downloads?.windowsPortableZip,
+        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/BVB-09-Windows-Portable.zip`
+      );
       localApiFallback = '/api/download/BVB-09-Windows-Portable.zip';
     }
 

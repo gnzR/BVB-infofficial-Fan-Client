@@ -14,11 +14,15 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '256kb' }));
 
-// Security Headers Middleware (Paket B Audit Hardening)
+// Security Headers Middleware (Paket B & Solution 5 Audit Hardening)
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https: http:; media-src 'self' data: blob: https: http:; connect-src 'self' https: wss:; object-src 'none'; base-uri 'self';"
+  );
   next();
 });
 
@@ -761,7 +765,10 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
             parsed = urllib.parse.urlparse(self.path)
             params = urllib.parse.parse_qs(parsed.query)
             target_url = params.get('url', [''])[0]
-            if target_url and (target_url.startswith('http://') or target_url.startswith('https://')):
+            u_parsed = urllib.parse.urlparse(target_url)
+            host = (u_parsed.hostname or '').lower()
+            allowed_domains = ('bvb.de', 'bvbwld.de', 'kicker.de', 'transfermarkt.de', 'ruhrnachrichten.de', 'espn.com', 'uefa.com', 'dfb.de', 'bundesliga.com', 'sportbild.bild.de', 'github.com', 'raw.githubusercontent.com')
+            if u_parsed.scheme in ('http', 'https') and any(host == d or host.endswith('.' + d) for d in allowed_domains):
                 subprocess.Popen(['xdg-open', target_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except Exception:
             pass
@@ -2966,10 +2973,7 @@ app.get('/api/bvb/archive', async (req, res) => {
   });
 });
 
-app.all('/api/open-external', (req, res) => {
-  const targetUrl = (req.query.url as string) || (req.body && req.body.url);
-  res.json({ success: true, url: targetUrl });
-});
+// Duplicate /api/open-external route removed (enforced via ALLOWED_EXTERNAL_HOSTS at line 1871)
 
 import https from 'https';
 

@@ -42,10 +42,45 @@ interface InfoModalProps {
   onClose: () => void;
 }
 
-export const CURRENT_APP_VERSION = '1.909.6';
+export const CURRENT_APP_VERSION = '1.909.7';
 export const GITHUB_REPO_OWNER = 'gnzR';
 export const GITHUB_REPO_NAME = 'BVB-infofficial-Fan-Client';
 export const GITHUB_REPO_URL = `https://github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}`;
+
+export function getVerifiedGitHubReleaseUrl(candidateUrl: string | undefined, fallbackUrl: string): string {
+  if (!candidateUrl || typeof candidateUrl !== 'string') return fallbackUrl;
+  try {
+    const parsed = new URL(candidateUrl);
+    if (parsed.protocol !== 'https:') return fallbackUrl;
+    const host = parsed.hostname.toLowerCase();
+    if (host !== 'raw.githubusercontent.com' && host !== 'github.com') return fallbackUrl;
+    if (!parsed.pathname.startsWith(`/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/`)) return fallbackUrl;
+    return parsed.toString();
+  } catch {
+    return fallbackUrl;
+  }
+}
+
+export function safeDecodeGitHubBase64Json<T>(b64Content: string): T | null {
+  try {
+    const binaryStr = window.atob(b64Content.replace(/\s/g, ''));
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    const decodedJson = new TextDecoder('utf-8').decode(bytes);
+    const parsed = JSON.parse(decodedJson);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      delete (parsed as any).__proto__;
+      delete (parsed as any).constructor;
+      delete (parsed as any).prototype;
+      return parsed as T;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 interface RemoteVersionPayload {
   version: string;
@@ -126,8 +161,7 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
       if (apiRes.ok) {
         const meta = await apiRes.json();
         if (meta && typeof meta.content === 'string') {
-          const decodedJson = decodeURIComponent(escape(window.atob(meta.content.replace(/\s/g, ''))));
-          const parsed = JSON.parse(decodedJson);
+          const parsed = safeDecodeGitHubBase64Json<RemoteVersionPayload>(meta.content);
           if (parsed && typeof parsed.version === 'string') {
             fetchedVersionData = parsed;
           }
@@ -223,10 +257,10 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
         releasedAt: new Date().toISOString().slice(0, 10),
         repositoryUrl: GITHUB_REPO_URL,
         changelog: [
+          'Neu in 1.909.7 (Security-Hardening 1-5): Strikte GitHub-Release-Origin-Validierung, CSP, HTTPS-Erzwingung & Entfernung unsicherer Browser-Flags',
           'Neu in 1.909.6: Echtzeit-GitHub-API Versionsprüfung ohne CDN-Cache-Verzögerung & präzise Erkennung neuer Versionen',
           'Neu in 1.909.5: Automatischer Start-Updater (Option 1 Popup-Modal) für Windows, Linux & Android direkt nach dem 3D-Splashscreen',
           'Neu in 1.909.5: Vollautomatischer Android Paket-Installer (intent:// Direktstart ohne manuelle Dateisuche)',
-          'Neu in 1.909.3: Intelligenter Deeplink-Resolver – fängt generische Portal-URLs (/bvb/, /news.html) ab und führt direkt zum spezifischen Artikel',
         ],
       });
       setUpdateStatus('up_to_date');
@@ -347,28 +381,32 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
     if (targetPlatform === 'android') {
       fileName = 'BVB-09-Android-Client.apk';
       mimeType = 'application/vnd.android.package-archive';
-      githubRawUrl =
-        remoteInfo?.downloads?.androidApk ||
-        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/BVB-09-Android-Client.apk`;
+      githubRawUrl = getVerifiedGitHubReleaseUrl(
+        remoteInfo?.downloads?.androidApk,
+        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/BVB-09-Android-Client.apk`
+      );
       localApiFallback = '/api/download/BVB-09-Android-Client.apk';
     } else if (targetPlatform === 'linux') {
       fileName = 'bvb-09-cachyos-package.tar.gz';
       mimeType = 'application/gzip';
-      githubRawUrl =
-        remoteInfo?.downloads?.cachyosTarGz ||
-        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/bvb-09-cachyos-package.tar.gz`;
+      githubRawUrl = getVerifiedGitHubReleaseUrl(
+        remoteInfo?.downloads?.cachyosTarGz,
+        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/bvb-09-cachyos-package.tar.gz`
+      );
       localApiFallback = '/api/download/bvb-09-cachyos-package.tar.gz';
     } else if (!preferWindowsExe) {
       fileName = 'BVB-09-Windows-Portable.zip';
       mimeType = 'application/zip';
-      githubRawUrl =
-        remoteInfo?.downloads?.windowsPortableZip ||
-        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/BVB-09-Windows-Portable.zip`;
+      githubRawUrl = getVerifiedGitHubReleaseUrl(
+        remoteInfo?.downloads?.windowsPortableZip,
+        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/BVB-09-Windows-Portable.zip`
+      );
       localApiFallback = '/api/download/BVB-09-Windows-Portable.zip';
     } else {
-      githubRawUrl =
-        remoteInfo?.downloads?.windowsSetupExe ||
-        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/BVB-09-Windows-Setup.exe`;
+      githubRawUrl = getVerifiedGitHubReleaseUrl(
+        remoteInfo?.downloads?.windowsSetupExe,
+        `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/releases/BVB-09-Windows-Setup.exe`
+      );
     }
 
     setDownloadStatusText(`Verbinde mit GitHub (${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}) und lade ${fileName}...`);

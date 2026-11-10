@@ -1333,17 +1333,25 @@ def build_serverless_html() -> str:
 
     if (url.indexOf("/version.json") === 0 || (url.indexOf("version.json") !== -1 && url.indexOf("githubusercontent.com") === -1)) {
       return makeJsonResponse({
-        version: "1.909.6",
-        versionCode: 19096,
+        version: "1.909.7",
+        versionCode: 19097,
         releasedAt: "2026-11-09",
         repositoryUrl: "https://github.com/gnzR/BVB-infofficial-Fan-Client",
         changelog: [
+          "Neu in 1.909.7 (Security-Hardening 1-5): Strikte GitHub-Release-Origin-Validierung im Auto-Updater, Content-Security-Policy (CSP), HTTPS-Erzwingung & Entfernung unsicherer Browser-Flags (--disable-web-security)",
           "Neu in 1.909.6: Echtzeit-GitHub-API Versionsprüfung ohne CDN-Cache-Verzögerung & präzise Erkennung, ob tatsächlich eine NEUERE Version vorliegt",
           "Neu in 1.909.5: Automatischer Start-Updater (Option 1 Popup-Modal) für Windows, CachyOS/Linux & Android direkt nach dem 3D-Splashscreen",
-          "Neu in 1.909.5: Vollautomatischer Android Paket-Installer (intent:// Direktstart ohne manuelle Dateisuche) & synchronisierte APK-Versionserkennung",
-          "Neu in 1.909.3: Intelligenter Deeplink-Resolver – fängt generische Portal-URLs (/bvb/, /news.html) ab und führt direkt zum spezifischen Artikel"
+          "Neu in 1.909.5: Vollautomatischer Android Paket-Installer (intent:// Direktstart ohne manuelle Dateisuche) & synchronisierte APK-Versionserkennung"
         ]
       });
+    }
+
+    // Solution 4 Security Hardening: Block arbitrary local file:// fetches and auto-upgrade external http:// API calls to https://
+    if (url.indexOf("file://") === 0 && url.indexOf("android_asset") === -1 && url.indexOf("BVB09-App.html") === -1) {
+      return Promise.reject(new Error("Blocked unauthorized local file:// access"));
+    }
+    if (url.indexOf("http://") === 0 && url.indexOf("http://localhost") === -1 && url.indexOf("http://127.0.0.1") === -1) {
+      input = "https://" + url.substring(7);
     }
 
     return origFetch(input, init);
@@ -1384,6 +1392,7 @@ def build_serverless_html() -> str:
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https: http:; media-src 'self' data: blob: https: http:; connect-src 'self' https:; object-src 'none'; base-uri 'none';" />
     <link rel="icon" type="image/png" href="{logo_b64}" />
     <title>BVB Inofficial Fan Client (Windows 10/11 Desktop App)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1421,8 +1430,8 @@ using System.Windows.Forms;
 [assembly: AssemblyCompany("BVB 09 Fan Community")]
 [assembly: AssemblyProduct("BVB Inofficial Fan Client")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 BVB 09 Client")]
-[assembly: AssemblyVersion("1.909.6.0")]
-[assembly: AssemblyFileVersion("1.909.6.0")]
+[assembly: AssemblyVersion("1.909.7.0")]
+[assembly: AssemblyFileVersion("1.909.7.0")]
 
 namespace BVB09Client
 {
@@ -1474,7 +1483,7 @@ namespace BVB09Client
                     {
                         ProcessStartInfo psi = new ProcessStartInfo();
                         psi.FileName = browserPath;
-                        psi.Arguments = "--app=\"" + fileUri + "\" --window-size=1420,920 --allow-file-access-from-files";
+                        psi.Arguments = "--app=\"" + fileUri + "\" --window-size=1420,920";
                         psi.UseShellExecute = false;
                         Process.Start(psi);
                         return;
@@ -1660,8 +1669,8 @@ using System.Drawing;
 [assembly: AssemblyCompany("BVB 09 Fan Community")]
 [assembly: AssemblyProduct("BVB Inofficial Fan Client")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 BVB 09 Client")]
-[assembly: AssemblyVersion("1.909.6.0")]
-[assembly: AssemblyFileVersion("1.909.6.0")]
+[assembly: AssemblyVersion("1.909.7.0")]
+[assembly: AssemblyFileVersion("1.909.7.0")]
 
 namespace BVB09Setup
 {
@@ -1912,7 +1921,7 @@ echo -e "${YELLOW}
  | |_) | |_| | |_) | | |_| |\\__, |
  |____/ \\___/|____/   \\___/   /_/ 
 ${NC}"
-echo -e "${YELLOW}[+] Starte BVB Inofficial Fan Client Beta 1.909.6 Installation auf CachyOS...${NC}\\n"
+echo -e "${YELLOW}[+] Starte BVB Inofficial Fan Client Beta 1.909.7 Installation auf CachyOS...${NC}\\n"
 
 echo -e "${BLUE}[1/4] Prüfe CachyOS / Arch System-Abhängigkeiten (Qt6 & Multimedia)...${NC}"
 DEPS=("python-pyqt6-webengine" "python-pyqt6" "libnotify" "pipewire" "pipewire-pulse" "alsa-utils" "gst-plugins-good" "gst-plugin-pipewire")
@@ -1935,7 +1944,7 @@ if [ ${#MISSING[@]} -ne 0 ]; then
     fi
 fi
 
-echo -e "${BLUE}[2/4] Installiere Anwendungsdateien (Offline-Desktop-Bundle Beta 1.909.6)...${NC}"
+echo -e "${BLUE}[2/4] Installiere Anwendungsdateien (Offline-Desktop-Bundle Beta 1.909.7)...${NC}"
 APP_DIR="$HOME/.local/share/bvb-desktop"
 mkdir -p "$APP_DIR"
 
@@ -1987,7 +1996,7 @@ sudo chmod +x /usr/local/bin/bvb-desktop
 echo -e "${BLUE}[4/4] Richte Desktop-Icon & Anwendungsmenü ein...${NC}"
 DESKTOP_ENTRY="[Desktop Entry]
 Name=BVB 09 Transfermarkt Client
-Comment=Borussia Dortmund 09 Desktop Client Beta 1.909.6 (Niko Kovac Edition)
+Comment=Borussia Dortmund 09 Desktop Client Beta 1.909.7 (Niko Kovac Edition)
 Exec=/usr/local/bin/bvb-desktop
 Icon=bvb-logo
 Terminal=false
@@ -2005,7 +2014,7 @@ fi
 
 update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
 
-echo -e "\\n${GREEN}[✓] BVB 09 Client Beta 1.909.6 ERFOLGREICH auf CachyOS installiert!${NC}"
+echo -e "\\n${GREEN}[✓] BVB 09 Client Beta 1.909.7 ERFOLGREICH auf CachyOS installiert!${NC}"
 echo -e "${YELLOW}[+] Starten: im Terminal mit 'bvb-desktop' oder über dein Anwendungsmenü.${NC}\\n"
 """
 
@@ -2031,7 +2040,7 @@ import signal
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 os.environ.setdefault("QT_QPA_PLATFORM", "wayland;xcb")
 os.environ.setdefault("QT_AUTO_SCREEN_SCALE_FACTOR", "1")
-os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu-sandbox --in-process-gpu --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --disable-gpu-memory-buffer-video-frames --allow-file-access-from-files --disable-web-security"
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu-sandbox --in-process-gpu --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --disable-gpu-memory-buffer-video-frames"
 
 app_dir = os.path.dirname(os.path.abspath(__file__))
 serverless_html = os.path.join(app_dir, "BVB09-App.html")
@@ -2058,9 +2067,23 @@ app = QApplication(sys.argv)
 app.setApplicationName("BVB Inofficial Fan Client")
 
 window = QMainWindow()
-window.setWindowTitle("BVB Inofficial Fan Client · Beta 1.909.6 (CachyOS Desktop App)")
+window.setWindowTitle("BVB Inofficial Fan Client · Beta 1.909.7 (CachyOS Desktop App)")
 window.resize(1440, 920)
 window.setStyleSheet("background-color: #07080a;")
+
+ALLOWED_DOMAINS = (
+    "bvb.de", "bvbwld.de", "kicker.de", "transfermarkt.de",
+    "ruhrnachrichten.de", "espn.com", "uefa.com", "dfb.de",
+    "bundesliga.com", "sportbild.bild.de", "github.com",
+    "raw.githubusercontent.com"
+)
+
+def is_safe_external_url(qurl):
+    scheme = (qurl.scheme() or "").lower()
+    host = (qurl.host() or "").lower()
+    if scheme not in ("https", "http"):
+        return False
+    return any(host == d or host.endswith("." + d) for d in ALLOWED_DOMAINS)
 
 class ExternalWebEnginePage(QWebEnginePage):
     _held_pages = []
@@ -2068,14 +2091,16 @@ class ExternalWebEnginePage(QWebEnginePage):
         url_str = url.toString()
         if url_str.startswith("file://") or url_str.startswith("data:") or url_str.startswith("blob:"):
             return super().acceptNavigationRequest(url, navType, isMainFrame)
-        QDesktopServices.openUrl(url)
+        if is_safe_external_url(url):
+            QDesktopServices.openUrl(url)
         return False
     def createWindow(self, windowType):
         temp_page = ExternalWebEnginePage(self.profile(), self)
         ExternalWebEnginePage._held_pages.append(temp_page)
         def on_url_changed(u):
             if u.isValid() and not u.isEmpty():
-                QDesktopServices.openUrl(u)
+                if is_safe_external_url(u):
+                    QDesktopServices.openUrl(u)
                 if temp_page in ExternalWebEnginePage._held_pages:
                     ExternalWebEnginePage._held_pages.remove(temp_page)
         temp_page.urlChanged.connect(on_url_changed)
@@ -2091,7 +2116,7 @@ settings = view.settings()
 settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
 settings.setAttribute(QWebEngineSettings.WebAttribute.LocalStorageEnabled, True)
 settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
+settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, False)
 settings.setAttribute(QWebEngineSettings.WebAttribute.PlaybackRequiresUserGesture, False)
 
 view.load(QUrl.fromLocalFile(serverless_html))
@@ -2101,10 +2126,10 @@ sys.exit(app.exec())
 """
 
     readme_cachy = """===================================================================
- BORUSSIA DORTMUND 09 DESKTOP CLIENT Beta 1.909.6 FOR CACHYOS / ARCH
+ BORUSSIA DORTMUND 09 DESKTOP CLIENT Beta 1.909.7 FOR CACHYOS / ARCH
 ===================================================================
 
-NEU IN VERSION Beta 1.909.6:
+NEU IN VERSION Beta 1.909.7:
   - Zweizeilige Profi-Desktop-Navigation (inkl. 30 Tage Statistik)
   - Geprüftes Netradio inkl. Radio Euskirchen (192 kbps MP3) & Radio 91.2 Dortmund
   - Idee 1: Interaktive BVB-Taktiktafel & Wunsch-Startelf-Planer (Niko Kovac)
@@ -2152,7 +2177,7 @@ DEINSTALLATION:
 
 
 def build_android_apk():
-    print("[6/6] Baue & signiere aktuelle Android-APK (BVB-09-Android-Client.apk v1.909.6)...")
+    print("[6/6] Baue & signiere aktuelle Android-APK (BVB-09-Android-Client.apk v1.909.7)...")
     import hashlib
     import struct
     import tempfile
@@ -2185,16 +2210,16 @@ def build_android_apk():
             if name.startswith("assets/audio/"):
                 chants[name] = zin.read(name)
 
-    # Patch binary AndroidManifest.xml versionName ("1.909.x" -> "1.909.6") and versionCode (1909x -> 19096)
-    for old_ver in ["1.909.1", "1.909.2", "1.909.3", "1.909.4", "1.909.5"]:
+    # Patch binary AndroidManifest.xml versionName ("1.909.x" -> "1.909.7") and versionCode (1909x -> 19097)
+    for old_ver in ["1.909.1", "1.909.2", "1.909.3", "1.909.4", "1.909.5", "1.909.6"]:
         old_u16 = old_ver.encode("utf-16le")
-        new_u16 = "1.909.6".encode("utf-16le")
+        new_u16 = "1.909.7".encode("utf-16le")
         if old_u16 in manifest_bin:
             manifest_bin = manifest_bin.replace(old_u16, new_u16)
 
-    for old_code in [19091, 19092, 19093, 19094, 19095]:
+    for old_code in [19091, 19092, 19093, 19094, 19095, 19096]:
         old_c = struct.pack("<I", old_code)
-        new_c = struct.pack("<I", 19096)
+        new_c = struct.pack("<I", 19097)
         if old_c in manifest_bin:
             manifest_bin = manifest_bin.replace(old_c, new_c, 1)
 
@@ -2402,7 +2427,7 @@ def build_android_apk():
         f.write(final_apk_bytes)
 
     shutil.rmtree(tmp_dir, ignore_errors=True)
-    print(f"    -> BVB-09-Android-Client.apk (v1.909.6, v1+v2 signiert) erstellt ({len(final_apk_bytes) // 1024} KB)")
+    print(f"    -> BVB-09-Android-Client.apk (v1.909.7, v1+v2 signiert) erstellt ({len(final_apk_bytes) // 1024} KB)")
 
 
 if __name__ == "__main__":
